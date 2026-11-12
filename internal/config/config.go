@@ -1,4 +1,4 @@
-// Package config resolves where watchdog keeps its files and loads the
+// Package config resolves where watchcat keeps its files and loads the
 // user-editable config.json.
 //
 // Python analogy: this is the module you'd put in settings.py. Go has no
@@ -42,7 +42,7 @@ type Config struct {
 }
 
 // Slack holds bot settings. The token itself lives in the OS keychain
-// (`watchdog secret set slack-token`); BotToken is only read from older
+// (`watchcat secret set slack-token`); BotToken is only read from older
 // config files and filled in at startup from wherever the token was found.
 type Slack struct {
 	BotToken string `json:"bot_token,omitempty"`
@@ -113,13 +113,13 @@ func Default() Config {
 	}
 }
 
-// Paths are the files watchdog owns. Everything lives under one directory,
-// ~/.watchdog by default:
+// Paths are the files watchcat owns. Everything lives under one directory,
+// ~/.watchcat by default:
 //
-//	~/.watchdog/bin/watchdog     the binary (~/.local/bin/watchdog links here)
-//	~/.watchdog/config.json      settings, including the Slack token (0600)
-//	~/.watchdog/watchdog.db      SQLite: PRs, history, task queue
-//	~/.watchdog/logs/watchdog.log daemon output when run as a service
+//	~/.watchcat/bin/watchcat     the binary (~/.local/bin/watchcat links here)
+//	~/.watchcat/config.json      settings, including the Slack token (0600)
+//	~/.watchcat/watchcat.db      SQLite: PRs, history, task queue
+//	~/.watchcat/logs/watchcat.log daemon output when run as a service
 type Paths struct {
 	Dir    string
 	Bin    string // the installed binary
@@ -128,15 +128,15 @@ type Paths struct {
 	Log    string
 }
 
-// DefaultPaths honours $WATCHDOG_HOME, otherwise uses ~/.watchdog.
+// DefaultPaths honours $WATCHCAT_HOME, otherwise uses ~/.watchcat.
 func DefaultPaths() (Paths, error) {
-	dir := os.Getenv("WATCHDOG_HOME")
+	dir := os.Getenv("WATCHCAT_HOME")
 	if dir == "" {
 		home, err := os.UserHomeDir()
 		if err != nil {
 			return Paths{}, err
 		}
-		dir = filepath.Join(home, ".watchdog")
+		dir = filepath.Join(home, ".watchcat")
 	}
 	return PathsIn(dir), nil
 }
@@ -144,28 +144,39 @@ func DefaultPaths() (Paths, error) {
 func PathsIn(dir string) Paths {
 	return Paths{
 		Dir:    dir,
-		Bin:    filepath.Join(dir, "bin", "watchdog"),
+		Bin:    filepath.Join(dir, "bin", "watchcat"),
 		Config: filepath.Join(dir, "config.json"),
-		DB:     filepath.Join(dir, "watchdog.db"),
-		Log:    filepath.Join(dir, "logs", "watchdog.log"),
+		DB:     filepath.Join(dir, "watchcat.db"),
+		Log:    filepath.Join(dir, "logs", "watchcat.log"),
 	}
 }
 
-// LegacyDir is where versions before ~/.watchdog kept their data, or "" if
-// nothing is there.
+// LegacyDir is where older versions kept their data, or "" if nothing is
+// there. Checked newest first: ~/.watchdog (before the rename to watchcat),
+// then the platform config directory used before that.
 func LegacyDir() string {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return ""
 	}
-	dir := filepath.Join(home, ".config", "watchdog")
+	cfgDir := filepath.Join(home, ".config", "watchdog")
 	if runtime.GOOS == "darwin" {
-		dir = filepath.Join(home, "Library", "Application Support", "watchdog")
+		cfgDir = filepath.Join(home, "Library", "Application Support", "watchdog")
 	}
-	if _, err := os.Stat(filepath.Join(dir, "config.json")); err != nil {
-		return ""
+	for _, dir := range []string{filepath.Join(home, ".watchdog"), cfgDir} {
+		if _, err := os.Stat(filepath.Join(dir, "config.json")); err == nil {
+			return dir
+		}
 	}
-	return dir
+	return ""
+}
+
+// legacyFiles maps the files older versions kept to their current names.
+var legacyFiles = [][2]string{
+	{"config.json", "config.json"},
+	{"watchdog.db", "watchcat.db"},
+	{"watchdog.db-wal", "watchcat.db-wal"},
+	{"watchdog.db-shm", "watchcat.db-shm"},
 }
 
 // MigrateLegacy moves config.json and the database from the old location
@@ -173,7 +184,10 @@ func LegacyDir() string {
 // or "" if there was nothing to do. Stop the daemon first: the database is
 // moved with its WAL files.
 func MigrateLegacy(p Paths) (string, error) {
-	old := LegacyDir()
+	return migrateFrom(LegacyDir(), p)
+}
+
+func migrateFrom(old string, p Paths) (string, error) {
 	if old == "" || old == p.Dir {
 		return "", nil
 	}
@@ -183,12 +197,12 @@ func MigrateLegacy(p Paths) (string, error) {
 	if err := os.MkdirAll(p.Dir, 0o700); err != nil {
 		return "", err
 	}
-	for _, name := range []string{"config.json", "watchdog.db", "watchdog.db-wal", "watchdog.db-shm"} {
-		src := filepath.Join(old, name)
+	for _, f := range legacyFiles {
+		src := filepath.Join(old, f[0])
 		if _, err := os.Stat(src); err != nil {
 			continue
 		}
-		if err := os.Rename(src, filepath.Join(p.Dir, name)); err != nil {
+		if err := os.Rename(src, filepath.Join(p.Dir, f[1])); err != nil {
 			return "", fmt.Errorf("move %s: %w", src, err)
 		}
 	}

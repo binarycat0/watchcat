@@ -9,20 +9,20 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/binarycat0/watchdog/internal/config"
-	"github.com/binarycat0/watchdog/internal/secrets"
+	"github.com/binarycat0/watchcat/internal/config"
+	"github.com/binarycat0/watchcat/internal/secrets"
 )
 
 // cmdSecret manages secrets in the OS keychain:
 //
-//	watchdog secret set slack-token     prompts without echo (or reads stdin)
-//	watchdog secret delete slack-token
-//	watchdog secret list
+//	watchcat secret set slack-token     prompts without echo (or reads stdin)
+//	watchcat secret delete slack-token
+//	watchcat secret list
 //
 // Values are never taken as arguments, so they don't end up in shell history.
 func cmdSecret(e env, args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: watchdog secret set|delete <name> | list")
+		return fmt.Errorf("usage: watchcat secret set|delete <name> | list")
 	}
 	store := secrets.Keyring{}
 	switch args[0] {
@@ -41,7 +41,7 @@ func cmdSecret(e env, args []string) error {
 	}
 
 	if len(args) != 2 {
-		return fmt.Errorf("usage: watchdog secret %s <name>", args[0])
+		return fmt.Errorf("usage: watchcat secret %s <name>", args[0])
 	}
 	s, err := secrets.Lookup(args[1])
 	if err != nil {
@@ -75,7 +75,7 @@ func cmdSecret(e env, args []string) error {
 }
 
 // readSecret prompts without echo on a terminal, or reads one line from
-// stdin when piped (e.g. `pbpaste | watchdog secret set slack-token`).
+// stdin when piped (e.g. `pbpaste | watchcat secret set slack-token`).
 func readSecret(s secrets.Secret) (string, error) {
 	var value string
 	if term.IsTerminal(int(os.Stdin.Fd())) {
@@ -101,6 +101,6 @@ func readSecret(s secrets.Secret) (string, error) {
 }
 
 func restartHint() error {
-	fmt.Println("restart the daemon to use it: watchdog service restart")
+	fmt.Println("restart the daemon to use it: watchcat service restart")
 	return nil
 }

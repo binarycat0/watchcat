@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/slack"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/slack"
 )
 
 // SlackPayload is the JSON payload of a slack.notify task. The text is built

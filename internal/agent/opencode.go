@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-// Session is an opencode session as watchdog needs it.
+// Session is an opencode session as watchcat needs it.
 type Session struct {
 	ID        string `json:"id"`
 	Title     string `json:"title"`
@@ -206,7 +206,7 @@ func (o Opencode) Prompt(ctx context.Context, id, worktree, text, key string) (s
 	}
 	raw, err := o.api(ctx, worktree, "post", "/api/session/"+id+"/prompt", map[string]any{
 		"text": text, "delivery": "queue", "resume": true,
-		"metadata": map[string]string{"watchdog_task": key},
+		"metadata": map[string]string{"watchcat_task": key},
 	})
 	if err != nil {
 		return "", err

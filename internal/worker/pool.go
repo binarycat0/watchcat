@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/core"
+	"github.com/binarycat0/watchcat/internal/core"
 )
 
 // Handler runs one task. Returning an error retries the task (with backoff)

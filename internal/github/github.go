@@ -1,4 +1,4 @@
-// Package github reads PR state through the gh CLI, so watchdog reuses your
+// Package github reads PR state through the gh CLI, so watchcat reuses your
 // existing `gh auth login` instead of managing its own token.
 package github
 
@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/core"
+	"github.com/binarycat0/watchcat/internal/core"
 )
 
 // Fetcher returns the current snapshot of a PR. The worker depends on this
@@ -241,7 +241,7 @@ func (g GH) run(ctx context.Context, args ...string) error {
 }
 
 // Merge merges a PR, but only if its head is still expectSHA, so a commit
-// pushed after watchdog decided to merge is never merged unseen.
+// pushed after watchcat decided to merge is never merged unseen.
 func (g GH) Merge(ctx context.Context, ref core.PRRef, method, expectSHA string) error {
 	return g.run(ctx, "pr", "merge", strconv.Itoa(ref.Number), "-R", ref.Slug(),
 		"--"+method, "--match-head-commit", expectSHA)

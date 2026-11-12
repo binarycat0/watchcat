@@ -1,8 +1,8 @@
-// Command watchdog is both the daemon and its CLI client.
+// Command watchcat is both the daemon and its CLI client.
 //
-//	watchdog daemon           run scheduler + API + web UI (what the service runs)
-//	watchdog pr add <ref>     talk to the running daemon over its localhost API
-//	watchdog service install  set up launchd/systemd (works without the daemon)
+//	watchcat daemon           run scheduler + API + web UI (what the service runs)
+//	watchcat pr add <ref>     talk to the running daemon over its localhost API
+//	watchcat service install  set up launchd/systemd (works without the daemon)
 package main
 
 import (
@@ -12,48 +12,48 @@ import (
 	"os"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/api"
-	"github.com/binarycat0/watchdog/internal/config"
-	"github.com/binarycat0/watchdog/internal/secrets"
+	"github.com/binarycat0/watchcat/internal/api"
+	"github.com/binarycat0/watchcat/internal/config"
+	"github.com/binarycat0/watchcat/internal/secrets"
 )
 
 // version is overridden at build time: go build -ldflags "-X main.version=1.2.3"
 var version = "dev"
 
-const usage = `watchdog - keeps an eye on your pull requests
+const usage = `watchcat - keeps an eye on your pull requests
 
 Usage:
-  watchdog init                     create config and data directory
-  watchdog daemon                   run the daemon in the foreground
-  watchdog status                   show daemon status
-  watchdog pr add <ref>             watch a PR: URL (any GitHub host), owner/repo#123 or host/owner/repo#123
-  watchdog pr list                  list watched PRs
-  watchdog pr show <id|ref>         show a PR and its history
-  watchdog pr remove <id|ref>       stop watching a PR
-  watchdog pr check <id|ref>        check a PR now
-  watchdog pr retrigger <id|ref>    re-run failed CI jobs
-  watchdog pr bind <id|ref> --session ses_... [--worktree /path]
+  watchcat init                     create config and data directory
+  watchcat daemon                   run the daemon in the foreground
+  watchcat status                   show daemon status
+  watchcat pr add <ref>             watch a PR: URL (any GitHub host), owner/repo#123 or host/owner/repo#123
+  watchcat pr list                  list watched PRs
+  watchcat pr show <id|ref>         show a PR and its history
+  watchcat pr remove <id|ref>       stop watching a PR
+  watchcat pr check <id|ref>        check a PR now
+  watchcat pr retrigger <id|ref>    re-run failed CI jobs
+  watchcat pr bind <id|ref> --session ses_... [--worktree /path]
                                     link a PR to the opencode session working on it (unbind to remove)
-  watchdog report [--days N]        PR lifecycle stats: counts, time to merge, CI failures (p50/p95)
-  watchdog mcp                      MCP server on stdio for AI agents (add to opencode's config)
-  watchdog agent sessions           list open opencode sessions and their worktrees
-  watchdog pr prompt-ci|prompt-review <id|ref>
+  watchcat report [--days N]        PR lifecycle stats: counts, time to merge, CI failures (p50/p95)
+  watchcat mcp                      MCP server on stdio for AI agents (add to opencode's config)
+  watchcat agent sessions           list open opencode sessions and their worktrees
+  watchcat pr prompt-ci|prompt-review <id|ref>
                                     send the CI-failure or review-threads prompt to the PR's session now
-  watchdog pr pause|resume <id|ref> pause or resume checks
-  watchdog tasks [--status S] [--pr id|ref]
+  watchcat pr pause|resume <id|ref> pause or resume checks
+  watchcat tasks [--status S] [--pr id|ref]
                                     list background tasks (queued/running/done/failed)
-  watchdog slack test               send a test message with the configured bot
-  watchdog secret set|delete <name>  store a secret in the OS keychain (prompted, never on the command line)
-  watchdog secret list              show which secrets are set and where they come from
-  watchdog service install|uninstall|start|stop|restart|status
-  watchdog health [--local] [--json] [--refresh]
+  watchcat slack test               send a test message with the configured bot
+  watchcat secret set|delete <name>  store a secret in the OS keychain (prompted, never on the command line)
+  watchcat secret list              show which secrets are set and where they come from
+  watchcat service install|uninstall|start|stop|restart|status
+  watchcat health [--local] [--json] [--refresh]
                                     check gh, Slack and opencode (as the daemon sees them)
-  watchdog doctor                   diagnose the setup
-  watchdog version
+  watchcat doctor                   diagnose the setup
+  watchcat version
 
 Environment:
-  WATCHDOG_HOME         override the config/data directory
-  WATCHDOG_SLACK_TOKEN  Slack bot token, overrides the keychain
+  WATCHCAT_HOME         override the config/data directory
+  WATCHCAT_SLACK_TOKEN  Slack bot token, overrides the keychain
 `
 
 // env bundles what every command needs. Passing it explicitly (instead of
@@ -78,7 +78,7 @@ func main() {
 	if err := run(os.Args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		if errors.Is(err, api.ErrDaemonDown) {
-			fmt.Fprintln(os.Stderr, "start it with `watchdog service start` or `watchdog daemon`")
+			fmt.Fprintln(os.Stderr, "start it with `watchcat service start` or `watchcat daemon`")
 		}
 		os.Exit(1)
 	}
@@ -138,7 +138,7 @@ func run(args []string) error {
 		fmt.Print(usage)
 		return nil
 	}
-	return fmt.Errorf("unknown command %q (see `watchdog help`)", cmd)
+	return fmt.Errorf("unknown command %q (see `watchcat help`)", cmd)
 }
 
 func (e env) client() *api.Client { return api.NewClient(e.cfg.Listen) }
@@ -149,14 +149,14 @@ func ctx() (context.Context, context.CancelFunc) {
 }
 
 func cmdInit(e env) error {
-	// Move data from the pre-~/.watchdog location, but never under a
+	// Move data from an older location (~/.watchdog or before), but never under a
 	// running daemon: it holds the database open.
-	if old := config.LegacyDir(); old != "" && os.Getenv("WATCHDOG_HOME") == "" {
+	if old := config.LegacyDir(); old != "" && os.Getenv("WATCHCAT_HOME") == "" {
 		c, cancel := ctx()
 		_, err := e.client().Status(c)
 		cancel()
 		if err == nil {
-			return fmt.Errorf("found old data in %s; stop the daemon (`watchdog service stop`) and run init again to move it", old)
+			return fmt.Errorf("found old data in %s; stop the daemon (`watchcat service stop`) and run init again to move it", old)
 		}
 		moved, err := config.MigrateLegacy(e.paths)
 		if err != nil {
@@ -175,6 +175,6 @@ func cmdInit(e env) error {
 	} else {
 		fmt.Println("config already exists:", e.paths.Config)
 	}
-	fmt.Println("next: `watchdog service install && watchdog service start`")
+	fmt.Println("next: `watchcat service install && watchcat service start`")
 	return nil
 }

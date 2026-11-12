@@ -12,13 +12,13 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/api"
-	"github.com/binarycat0/watchdog/internal/config"
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/health"
-	"github.com/binarycat0/watchdog/internal/secrets"
-	"github.com/binarycat0/watchdog/internal/service"
-	"github.com/binarycat0/watchdog/internal/slack"
+	"github.com/binarycat0/watchcat/internal/api"
+	"github.com/binarycat0/watchcat/internal/config"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/health"
+	"github.com/binarycat0/watchcat/internal/secrets"
+	"github.com/binarycat0/watchcat/internal/service"
+	"github.com/binarycat0/watchcat/internal/slack"
 )
 
 // healthChecks builds the tool checks from config and the watched PRs. The
@@ -42,13 +42,13 @@ func (e env) healthChecks(cfg config.Config, prs []core.PR) []health.Check {
 	}
 }
 
-// setupCheck describes watchdog's own install, with secrets re-read from
+// setupCheck describes watchcat's own install, with secrets re-read from
 // the keychain on every run so a newly set token shows up immediately.
 func (e env) setupCheck() health.Setup {
 	home, _ := os.UserHomeDir()
 	return health.Setup{
 		Bin:      e.paths.Bin,
-		Link:     filepath.Join(home, ".local", "bin", "watchdog"),
+		Link:     filepath.Join(home, ".local", "bin", "watchcat"),
 		Service:  serviceStatus,
 		Secrets:  e.secretStatuses(),
 		LegacyIn: config.LegacyDir(),
@@ -59,7 +59,7 @@ func (e env) setupCheck() health.Setup {
 
 // legacyLabel is the launchd job of the earlier Python pr-watchdog. It sends
 // prompts to opencode sessions and merges PRs on its own schedule, which
-// would look like watchdog ignoring its dry-run settings.
+// would look like watchcat ignoring its dry-run settings.
 const legacyLabel = "local.pr-watchdog"
 
 func otherWatchers() []string {
@@ -93,7 +93,7 @@ func (e env) secretStatuses() []health.SecretStatus {
 			legacy = fileCfg.Slack.BotToken
 		}
 		v, src, err := secrets.Resolve(secrets.Keyring{}, s, legacy)
-		st := health.SecretStatus{Name: s.Name, Source: src, Hint: "watchdog secret set " + s.Name}
+		st := health.SecretStatus{Name: s.Name, Source: src, Hint: "watchcat secret set " + s.Name}
 		if v != "" {
 			st.Masked = secrets.Mask(v)
 		}

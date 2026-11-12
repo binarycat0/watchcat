@@ -3,7 +3,7 @@ package github
 import (
 	"testing"
 
-	"github.com/binarycat0/watchdog/internal/core"
+	"github.com/binarycat0/watchcat/internal/core"
 )
 
 const sample = `{"data":{"repository":{"pullRequest":{

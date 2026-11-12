@@ -1,11 +1,11 @@
-# watchdog
+# watchcat
 
 A personal daemon that watches your pull requests (CI, reviews, conflicts),
 notifies Slack, and hands work to the opencode/Claude session that owns each PR.
 
 One binary does everything:
 
-- `watchdog daemon` runs the scheduler, the SQLite store, the localhost API and
+- `watchcat daemon` runs the scheduler, the SQLite store, the localhost API and
   the web UI in a single process. This is what launchd/systemd keep alive.
 - Every other command (`pr add`, `status`, ...) is a client of that API.
 - `init`, `service ...` and `doctor` work without the daemon.
@@ -19,31 +19,31 @@ One binary does everything:
 | Node.js 20+ and npm | builds the web UI (only at build time; the binary doesn't need it) | `node --version` · `brew install node` |
 | GitHub CLI `gh`, signed in with the `repo` scope | every PR check, merge and rerun goes through it | `gh auth status` · `gh auth login` |
 | …plus each GitHub Enterprise host you use | PRs on a host gh isn't signed in to are refused | `gh auth login --hostname github.example.com` |
-| `~/.local/bin` on `PATH` | `make install` links `watchdog` there | add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc` |
-| Slack app bot token with `chat:write` (optional) | DMs about PR changes and rule actions | `watchdog secret set slack-token` (stored in the Keychain) |
+| `~/.local/bin` on `PATH` | `make install` links `watchcat` there | add `export PATH="$HOME/.local/bin:$PATH"` to `~/.zshrc` |
+| Slack app bot token with `chat:write` (optional) | DMs about PR changes and rule actions | `watchcat secret set slack-token` (stored in the Keychain) |
 | opencode (optional) | agent hand-off: prompts to the session working on a PR | `opencode --version` |
 
 On Linux, storing secrets needs `secret-tool` (libsecret) and a running
-keyring; otherwise use the `WATCHDOG_SLACK_TOKEN` environment variable.
-`watchdog doctor` and the Health page check all of this.
+keyring; otherwise use the `WATCHCAT_SLACK_TOKEN` environment variable.
+`watchcat doctor` and the Health page check all of this.
 
 ## Quick start
 
 ```bash
-make install                 # builds the UI (npm) and binary -> ~/.watchdog/bin, symlink in ~/.local/bin
-watchdog init                # writes ~/.watchdog/config.json
-watchdog service install     # launchd agent on macOS, systemd --user unit on Linux
-watchdog service start
-watchdog pr add dremio/dremio#123
+make install                 # builds the UI (npm) and binary -> ~/.watchcat/bin, symlink in ~/.local/bin
+watchcat init                # writes ~/.watchcat/config.json
+watchcat service install     # launchd agent on macOS, systemd --user unit on Linux
+watchcat service start
+watchcat pr add dremio/dremio#123
 open http://127.0.0.1:7878   # web UI
 ```
 
 `~/.local/bin` must be on your `PATH` (`make install` tells you if it isn't).
 To upgrade, pull and run `make install` again: it swaps the binary atomically
 and restarts the service if it's running. `make uninstall` removes the
-binary, symlink and service but keeps `~/.watchdog`.
+binary, symlink and service but keeps `~/.watchcat`.
 
-The service runs `~/.watchdog/bin/watchdog` directly, not the symlink, so it
+The service runs `~/.watchcat/bin/watchcat` directly, not the symlink, so it
 keeps working however `~/.local/bin` changes.
 
 ## CI run history
@@ -64,14 +64,14 @@ PRs can live on github.com or any GitHub Enterprise host gh is signed in to:
 
 ```bash
 gh auth login --hostname github.example.com     # once per host
-watchdog pr add https://github.example.com/org/repo/pull/42
-watchdog pr add github.example.com/org/repo#42  # same thing
-watchdog pr add org/repo#42                     # uses github_host (default github.com)
+watchcat pr add https://github.example.com/org/repo/pull/42
+watchcat pr add github.example.com/org/repo#42  # same thing
+watchcat pr add org/repo#42                     # uses github_host (default github.com)
 ```
 
 Adding a PR on a host gh isn't signed in to is refused with the
 `gh auth login --hostname` command to run. Every gh call (checks, merge,
-rerun, logs, review threads) targets the PR's own host. `watchdog health`
+rerun, logs, review threads) targets the PR's own host. `watchcat health`
 and the Health page list each signed-in host and account with its scopes,
 the orgs per host, and read access to every watched repo.
 `github_host` (Settings page or `config.json`) sets the host for short
@@ -83,7 +83,7 @@ Everything runs as background tasks from a SQLite-backed queue (`tasks`
 table), executed by a worker pool inside the daemon:
 
 1. A planner enqueues a `pr.check` task for each PR that is due
-   (`poll_interval`). `watchdog pr check` enqueues one immediately.
+   (`poll_interval`). `watchcat pr check` enqueues one immediately.
 2. `pr.check` reads the PR through `gh api graphql` (CI checks, mergeability,
    review decision, unresolved threads), stores a snapshot and diffs it
    against the previous one.
@@ -92,7 +92,7 @@ table), executed by a worker pool inside the daemon:
    `slack.notify`; the review resolver and agent hand-off will plug in as new
    task kinds at the same place (`Router` in `internal/worker`).
 4. Failed tasks retry with backoff (30s, 1m, 2m, ...) up to their attempt
-   limit; tasks interrupted by a restart are requeued. `watchdog tasks` shows
+   limit; tasks interrupted by a restart are requeued. `watchcat tasks` shows
    them all.
 
 Merged or closed PRs are paused automatically.
@@ -103,9 +103,9 @@ Create a Slack app with a bot token that has the `chat:write` scope. Store
 the token in the OS keychain, not in `config.json`:
 
 ```bash
-watchdog secret set slack-token    # prompts without echo; or: pbpaste | watchdog secret set slack-token
-watchdog service restart
-watchdog slack test
+watchcat secret set slack-token    # prompts without echo; or: pbpaste | watchcat secret set slack-token
+watchcat service restart
+watchcat slack test
 ```
 
 and set who gets the DMs in `config.json`:
@@ -122,21 +122,21 @@ instead (a channel ID the bot was invited to) to post in a channel.
 ## Secrets
 
 Secrets live in the OS secret store, using the same convention as DAP's
-`~/.dap/get-secret.sh`: service `watchdog-<name>`, account `$USER`.
+`~/.dap/get-secret.sh`: service `watchcat-<name>`, account `$USER`.
 
 | | macOS (login Keychain) | Linux (Secret Service via `secret-tool`) |
 |---|---|---|
-| read | `security find-generic-password -a $USER -s watchdog-slack-token -w` | `secret-tool lookup service watchdog-slack-token account $USER` |
+| read | `security find-generic-password -a $USER -s watchcat-slack-token -w` | `secret-tool lookup service watchcat-slack-token account $USER` |
 
-So `~/.dap/get-secret.sh watchdog-slack-token` returns the token too, and an
-entry created with `security add-generic-password` works for watchdog.
-`watchdog secret set slack-token` stores it (value from a hidden prompt or
+So `~/.dap/get-secret.sh watchcat-slack-token` returns the token too, and an
+entry created with `security add-generic-password` works for watchcat.
+`watchcat secret set slack-token` stores it (value from a hidden prompt or
 stdin, passed to the store on stdin, never as an argument);
-`watchdog secret list` shows each secret's source, masked.
+`watchcat secret list` shows each secret's source, masked.
 
-Lookup order: environment variable (`WATCHDOG_SLACK_TOKEN`), then the
+Lookup order: environment variable (`WATCHCAT_SLACK_TOKEN`), then the
 keychain, then a plaintext `slack.bot_token` left in an old `config.json`
-(works, but `doctor` and `health` warn; `watchdog secret set slack-token`
+(works, but `doctor` and `health` warn; `watchcat secret set slack-token`
 moves it and deletes it from the file). Only `daemon`, `health` and
 `doctor` read secrets, and reading never prompts. On Linux without
 `secret-tool` or a running Secret Service, use the environment variable.
@@ -145,7 +145,7 @@ moves it and deletes it from the file). Only `daemon`, `health` and
 
 `http://127.0.0.1:7878`, a React + TypeScript app (Vite) in `web/ui/`. `make ui`
 builds it into `web/dist/app`, which `go:embed` bakes into the binary, so
-the installed watchdog is still one file with no Node at runtime. A binary
+the installed watchcat is still one file with no Node at runtime. A binary
 built without the UI (`make build-go` or plain `go build`) serves a short
 page explaining how to build it. Pages refresh every 5s (React Query) and
 follow the system light/dark theme:
@@ -167,7 +167,7 @@ follow the system light/dark theme:
   merged on GitHub) p50/p95/max, CI failures per PR p50/p95/max, and a
   per-PR table, plus time to CI result per commit (first job start to last
   job end) and per-job duration p50/p95/max with run and failure counts.
-  Same data from `watchdog report [--days N]` and
+  Same data from `watchcat report [--days N]` and
   `GET /api/v1/report?days=N`.
 - **Settings** (`#/settings`): workflow rule modes, merge method, check
   interval, Slack user ID/channel and which changes send a DM. Saved to
@@ -176,11 +176,11 @@ follow the system light/dark theme:
 
 ## Retriggering CI
 
-`watchdog pr retrigger <ref>` (or the Retrigger button) queues a
+`watchcat pr retrigger <ref>` (or the Retrigger button) queues a
 `pr.retrigger` task that re-runs the failed GitHub Actions jobs with
 `gh run rerun --failed`. Checks from other CI systems are reported as skipped.
 A follow-up check runs a minute later. The result is in the PR history and
-`watchdog tasks`.
+`watchcat tasks`.
 
 ## Workflows
 
@@ -203,23 +203,23 @@ Each rule is `off`, `dry-run` (default) or `on` in `config.json`:
 
 Dry-run does everything except the action: it re-checks GitHub, builds the
 prompt or command and stores it as the task's result (visible in
-`watchdog tasks`, the PR page and the Tasks page). Actions always re-fetch
+`watchcat tasks`, the PR page and the Tasks page). Actions always re-fetch
 the PR right before acting and skip if it changed since the rule fired.
 
 Every rule that fires also sends a Slack DM to `slack.user_id`.
 
 ## Agent hand-off (opencode)
 
-Watchdog talks to opencode through its CLI, `opencode api <method> <endpoint>`,
+Watchcat talks to opencode through its CLI, `opencode api <method> <endpoint>`,
 the same way the earlier Python pr-watchdog did. Nothing extra needs to run:
 use opencode in your terminal as usual, one process with as many sessions as
 you like.
 
 ```bash
-watchdog agent sessions                         # open sessions with their worktrees
-watchdog pr bind dremio/dremio#123 --session ses_abc123   # worktree comes from the session
-watchdog pr prompt-ci dremio/dremio#123         # send the CI-failure prompt now (only if the ci_failed rule is "on"; otherwise a dry-run preview)
-watchdog pr unbind dremio/dremio#123
+watchcat agent sessions                         # open sessions with their worktrees
+watchcat pr bind dremio/dremio#123 --session ses_abc123   # worktree comes from the session
+watchcat pr prompt-ci dremio/dremio#123         # send the CI-failure prompt now (only if the ci_failed rule is "on"; otherwise a dry-run preview)
+watchcat pr unbind dremio/dremio#123
 ```
 
 or pick the session on the PR page. A link is a session plus the worktree it
@@ -233,7 +233,7 @@ lost, a retry would make the agent do the work twice.
 
 ## MCP server for agents
 
-`watchdog mcp` is an MCP server on stdio, so an agent can link the PR it
+`watchcat mcp` is an MCP server on stdio, so an agent can link the PR it
 just opened to its own session, without you running `pr bind`. Add it to
 opencode's config (`~/.config/opencode/opencode.json`, or `opencode.json` in
 a repo; check the exact keys against your opencode version):
@@ -241,7 +241,7 @@ a repo; check the exact keys against your opencode version):
 ```json
 {
   "mcp": {
-    "watchdog": { "type": "local", "command": ["watchdog", "mcp"], "enabled": true }
+    "watchcat": { "type": "local", "command": ["watchcat", "mcp"], "enabled": true }
   }
 }
 ```
@@ -249,8 +249,8 @@ a repo; check the exact keys against your opencode version):
 and tell agents to use it, e.g. in `AGENTS.md`:
 
 ```markdown
-After you create a pull request, call the `watchdog.watch_pr` tool so the PR
-is linked to this session. Use `watchdog.pr_status` to check CI and reviews.
+After you create a pull request, call the `watchcat.watch_pr` tool so the PR
+is linked to this session. Use `watchcat.pr_status` to check CI and reviews.
 ```
 
 | Tool | What it does |
@@ -273,7 +273,7 @@ or rule modes. The daemon must be running.
 
 ## Tool health
 
-`watchdog health` reports whether the tools watchdog relies on are ready,
+`watchcat health` reports whether the tools watchcat relies on are ready,
 as the daemon sees them (the service's environment can differ from your
 shell). With the daemon down, or with `--local`, it checks from your shell.
 `--json` prints the raw report; `GET /api/v1/health` serves the same data
@@ -286,33 +286,53 @@ shell). With the daemon down, or with `--local`, it checks from your shell.
 | Slack CLI | no | installed, version, `slack auth list` |
 | opencode | no (needed for agent hand-off) | installed, version |
 
-`watchdog doctor` adds setup checks (config, database, service, daemon).
+`watchcat doctor` adds setup checks (config, database, service, daemon).
 
 ## Files
 
-Everything lives in `~/.watchdog` (or `$WATCHDOG_HOME`), mode 0700. Secrets
+Everything lives in `~/.watchcat` (or `$WATCHCAT_HOME`), mode 0700. Secrets
 are not stored here; see [Secrets](#secrets).
 
-- `bin/watchdog`: the binary (`~/.local/bin/watchdog` links here)
+- `bin/watchcat`: the binary (`~/.local/bin/watchcat` links here)
 - `config.json`: `listen`, `poll_interval` (e.g. `"5m"`), `tick_interval`,
   `workers`, `notify_on`, `slack`, `workflows`, `merge_method`, `github_host`
-- `watchdog.db`: SQLite (PRs, event history, task queue)
-- `logs/watchdog.log`: daemon output when run as a service
+- `watchcat.db`: SQLite (PRs, event history, task queue)
+- `logs/watchcat.log`: daemon output when run as a service
 
-Older versions used `~/Library/Application Support/watchdog` (macOS) or
-`~/.config/watchdog`; `watchdog init` moves config and database over (stop
-the daemon first). `watchdog doctor` checks the binary, symlink and `PATH`.
+Older versions used `~/.watchdog` (before the project was renamed to
+watchcat), or before that `~/Library/Application Support/watchdog` (macOS) /
+`~/.config/watchdog`; `watchcat init` moves config and database over (stop
+the daemon first). `watchcat doctor` checks the binary, symlink and `PATH`.
+
+### Upgrading from watchdog
+
+The rename changes the binary, service, data directory, environment
+variables and keychain entries, so an existing watchdog install is not
+picked up automatically. Once:
+
+```sh
+watchdog service uninstall          # old launchd/systemd service
+rm -f ~/.local/bin/watchdog         # old symlink (and ~/.watchdog/bin when done)
+make install
+watchcat init                       # moves ~/.watchdog/config.json and watchdog.db
+watchcat secret set slack-token     # keychain service is now watchcat-slack-token
+watchcat service install && watchcat service start
+```
+
+Rename `WATCHDOG_HOME` / `WATCHDOG_SLACK_TOKEN` to `WATCHCAT_HOME` /
+`WATCHCAT_SLACK_TOKEN` if you set them, and update opencode's MCP config to
+run `watchcat mcp`.
 
 ## Layout
 
 ```
-cmd/watchdog/     CLI entry point and subcommands (daemon, pr, service, doctor)
+cmd/watchcat/     CLI entry point and subcommands (daemon, pr, service, doctor)
 internal/config/  paths and config.json
 internal/core/    domain model, PR snapshots/diff, SQLite store + task queue
 internal/worker/  worker pool, planner, task handlers (pr.check, slack.notify)
 internal/github/  PR state via `gh api graphql`
 internal/slack/   bot-token client (chat.postMessage, auth.test)
-internal/mcp/     minimal MCP (JSON-RPC over stdio) server; tools live in cmd/watchdog/mcp.go
+internal/mcp/     minimal MCP (JSON-RPC over stdio) server; tools live in cmd/watchcat/mcp.go
 internal/agent/   opencode client (`opencode api`, run from the session's worktree)
 internal/health/  tool checks: gh, Slack bot, Slack CLI, opencode
 internal/secrets/ OS keychain access (security / secret-tool, DAP-compatible)
@@ -352,9 +372,9 @@ with a non-local `Host` or a cross-site `Origin` are rejected.
 
 ```bash
 make test        # go vet + go test -race (+ UI typecheck if node_modules exists)
-make build       # UI + bin/watchdog
+make build       # UI + bin/watchcat
 make build-go    # binary only, no Node needed
-WATCHDOG_HOME=/tmp/wd ./bin/watchdog daemon   # isolated dev instance
+WATCHCAT_HOME=/tmp/wd ./bin/watchcat daemon   # isolated dev instance
 
 cd web/ui && npm ci && npm run dev   # UI with hot reload on :5173, API proxied to :7878
 ```

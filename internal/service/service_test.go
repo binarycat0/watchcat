@@ -6,10 +6,10 @@ import (
 )
 
 var spec = Spec{
-	Executable: "/Users/me/My Tools/watchdog",
+	Executable: "/Users/me/My Tools/watchcat",
 	Args:       []string{"daemon"},
 	Env:        map[string]string{"PATH": "/usr/bin:/opt/a&b"},
-	LogPath:    "/tmp/watchdog.log",
+	LogPath:    "/tmp/watchcat.log",
 }
 
 func TestLaunchdRender(t *testing.T) {
@@ -20,7 +20,7 @@ func TestLaunchdRender(t *testing.T) {
 	out := string(b)
 	for _, want := range []string{
 		"<string>" + Label + "</string>",
-		"<string>/Users/me/My Tools/watchdog</string>",
+		"<string>/Users/me/My Tools/watchcat</string>",
 		"<string>daemon</string>",
 		"<string>/usr/bin:/opt/a&amp;b</string>", // escaped for XML
 		"<key>RunAtLoad</key>",
@@ -38,7 +38,7 @@ func TestSystemdRender(t *testing.T) {
 	}
 	out := string(b)
 	for _, want := range []string{
-		`ExecStart="/Users/me/My Tools/watchdog" "daemon"`,
+		`ExecStart="/Users/me/My Tools/watchcat" "daemon"`,
 		`Environment="PATH=/usr/bin:/opt/a&b"`,
 		"WantedBy=default.target",
 	} {

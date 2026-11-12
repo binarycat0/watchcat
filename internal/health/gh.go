@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/binarycat0/watchdog/internal/github"
+	"github.com/binarycat0/watchcat/internal/github"
 )
 
 // GH checks the GitHub CLI: installed, which hosts and accounts it is signed

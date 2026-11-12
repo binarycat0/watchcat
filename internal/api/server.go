@@ -18,12 +18,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/agent"
-	"github.com/binarycat0/watchdog/internal/config"
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/health"
-	"github.com/binarycat0/watchdog/internal/slack"
-	"github.com/binarycat0/watchdog/internal/worker"
+	"github.com/binarycat0/watchcat/internal/agent"
+	"github.com/binarycat0/watchcat/internal/config"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/health"
+	"github.com/binarycat0/watchcat/internal/slack"
+	"github.com/binarycat0/watchcat/internal/worker"
 )
 
 // Server holds the daemon's live state that handlers need.
@@ -336,7 +336,7 @@ func (s *Server) Handler(pid int) http.Handler {
 			writeJSON(w, http.StatusBadRequest, errorResponse{"slack is not configured: set slack.bot_token and slack.channel in config.json, then restart the daemon"})
 			return
 		}
-		if err := s.Slack.Post(r.Context(), s.slackTarget(), ":dog: watchdog test message"); err != nil {
+		if err := s.Slack.Post(r.Context(), s.slackTarget(), ":cat: watchcat test message"); err != nil {
 			writeJSON(w, http.StatusBadGateway, errorResponse{err.Error()})
 			return
 		}

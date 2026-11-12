@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/core"
+	"github.com/binarycat0/watchcat/internal/core"
 )
 
 func newStore(t *testing.T) *core.Store {

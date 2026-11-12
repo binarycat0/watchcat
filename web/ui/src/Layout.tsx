@@ -20,7 +20,7 @@ export function Layout() {
       <header className="top">
         <div className="brand">
           <span className="logo" aria-hidden="true" />
-          <strong>Watchdog</strong>
+          <strong>Watchcat</strong>
           <Link to="/health" className={`badge ${health.data?.status ?? ''}`} title="Tool health">
             tools {health.data?.status ?? '?'}
           </Link>

@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -93,5 +94,27 @@ func TestDurationString(t *testing.T) {
 		if d.String() != want {
 			t.Errorf("%s -> %s, want %s", in, d.String(), want)
 		}
+	}
+}
+
+func TestMigrateFromWatchdogDir(t *testing.T) {
+	old := t.TempDir()
+	os.WriteFile(filepath.Join(old, "config.json"), []byte(`{}`), 0o600)
+	os.WriteFile(filepath.Join(old, "watchdog.db"), []byte("db"), 0o600)
+	p := PathsIn(filepath.Join(t.TempDir(), ".watchcat"))
+
+	moved, err := migrateFrom(old, p)
+	if err != nil || moved != old {
+		t.Fatalf("moved=%q err=%v", moved, err)
+	}
+	if b, err := os.ReadFile(p.DB); err != nil || string(b) != "db" {
+		t.Fatalf("db not moved to %s: %q %v", p.DB, b, err)
+	}
+	if _, err := os.Stat(p.Config); err != nil {
+		t.Fatalf("config not moved: %v", err)
+	}
+	// Already set up: a second run leaves things alone.
+	if moved, _ := migrateFrom(old, p); moved != "" {
+		t.Fatalf("second migrate moved from %q", moved)
 	}
 }

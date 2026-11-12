@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/github"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/github"
 )
 
 // Prompt names carried in ActionPayload.Prompt.
@@ -20,7 +20,7 @@ not resolve review conversations yourself. When you're done, reply with a
 short summary of what you did and what is left for me.`
 
 func promptHeader(pr core.PR, s core.Snapshot) string {
-	return fmt.Sprintf("[watchdog] PR %s: %s\n%s\nHead commit: %s, base branch: %s\n",
+	return fmt.Sprintf("[watchcat] PR %s: %s\n%s\nHead commit: %s, base branch: %s\n",
 		pr.Ref(), s.Title, pr.URL(), s.HeadSHA, orDefault(s.BaseRef, "main"))
 }
 

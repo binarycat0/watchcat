@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/github"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/github"
 )
 
 const KindPRRetrigger = "pr.retrigger"

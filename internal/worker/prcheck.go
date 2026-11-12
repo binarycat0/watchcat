@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/github"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/github"
 )
 
 // Task kinds. New background jobs (review resolver, agent hand-off) add a
@@ -100,7 +100,7 @@ func (h *PRCheck) Handle(ctx context.Context, t core.Task) error {
 	snap, err := h.GitHub.Fetch(ctx, pr.Key())
 	if err != nil {
 		// Show the error on the PR, keep the old snapshot as the baseline, and
-		// fail the task so it is visible in `watchdog tasks`. The planner will
+		// fail the task so it is visible in `watchcat tasks`. The planner will
 		// try again next interval.
 		rerr := h.Store.RecordCheck(ctx, pr.ID, core.CheckResult{Status: core.StatusError, Summary: err.Error()}, now, now.Add(h.Interval()))
 		return errors.Join(err, rerr)

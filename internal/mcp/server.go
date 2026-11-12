@@ -1,6 +1,6 @@
 // Package mcp is a minimal Model Context Protocol server over stdio:
 // newline-delimited JSON-RPC 2.0 with initialize, tools/list and tools/call.
-// That's all agents need to discover and call watchdog's tools; each tool's
+// That's all agents need to discover and call watchcat's tools; each tool's
 // description and input schema are its "help".
 package mcp
 

@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/core"
+	"github.com/binarycat0/watchcat/internal/core"
 )
 
 // CIRuns returns every CI job run on a commit: GitHub Actions check runs
