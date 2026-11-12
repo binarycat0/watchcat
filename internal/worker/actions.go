@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/github"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/github"
 )
 
 const (
@@ -76,7 +76,7 @@ func (h *Merge) Handle(ctx context.Context, t core.Task) error {
 	if err := h.Writer.Merge(ctx, pr.Key(), method, s.HeadSHA); err != nil {
 		return err
 	}
-	h.Store.AddEvent(ctx, pr.ID, "merged", "merged by watchdog ("+method+")")
+	h.Store.AddEvent(ctx, pr.ID, "merged", "merged by watchcat ("+method+")")
 	return h.Store.SetTaskResult(ctx, t.ID, "ran "+cmd)
 }
 
@@ -104,7 +104,7 @@ func (h *AutoMerge) Handle(ctx context.Context, t core.Task) error {
 	if err := h.Writer.EnableAutoMerge(ctx, pr.Key(), method); err != nil {
 		return err
 	}
-	h.Store.AddEvent(ctx, pr.ID, "automerge", "auto-merge enabled by watchdog ("+method+")")
+	h.Store.AddEvent(ctx, pr.ID, "automerge", "auto-merge enabled by watchcat ("+method+")")
 	return h.Store.SetTaskResult(ctx, t.ID, "ran "+cmd)
 }
 
@@ -160,7 +160,7 @@ func (h *AgentPrompt) Handle(ctx context.Context, t core.Task) error {
 	}
 	if pr.AgentSession == "" {
 		h.Store.SetTaskResult(ctx, t.ID, text)
-		return errors.New("no agent session linked to this PR: watchdog pr bind <ref> --session <id>")
+		return errors.New("no agent session linked to this PR: watchcat pr bind <ref> --session <id>")
 	}
 	if h.Agent == nil {
 		h.Store.SetTaskResult(ctx, t.ID, text)

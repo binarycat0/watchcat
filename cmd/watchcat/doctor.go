@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/binarycat0/watchdog/internal/health"
+	"github.com/binarycat0/watchcat/internal/health"
 )
 
 // cmdDoctor checks the setup without needing the daemon. Each check prints
@@ -19,7 +19,7 @@ func cmdDoctor(e env) error {
 	}
 
 	if _, err := os.Stat(e.paths.Config); err != nil {
-		report("warn", "config", "missing, run `watchdog init` ("+e.paths.Config+")")
+		report("warn", "config", "missing, run `watchcat init` ("+e.paths.Config+")")
 	} else {
 		report("ok", "config", e.paths.Config)
 	}
@@ -41,7 +41,7 @@ func cmdDoctor(e env) error {
 	fmt.Println()
 	rep := e.localHealth(c)
 	fmt.Printf("tool health from this shell: %s\n", rep.Status)
-	fmt.Println("(the service may see a different environment; `watchdog health` asks the daemon)")
+	fmt.Println("(the service may see a different environment; `watchcat health` asks the daemon)")
 	printReport(rep)
 	if rep.Status == health.Fail {
 		failed = true

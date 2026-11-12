@@ -26,7 +26,7 @@ type Report struct {
 	// in the period.
 	CIFailures Stats `json:"ci_failures"`
 	// MissingTimes counts merged PRs whose GitHub timestamps aren't known
-	// yet (checked before watchdog recorded them; filled in on next check).
+	// yet (checked before watchcat recorded them; filled in on next check).
 	MissingTimes int `json:"missing_times"`
 
 	PRs []ReportRow `json:"prs"`

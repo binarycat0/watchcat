@@ -5,7 +5,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/binarycat0/watchdog/internal/slack"
+	"github.com/binarycat0/watchcat/internal/slack"
 )
 
 // SlackBot checks the configured bot token with auth.test.
@@ -22,7 +22,7 @@ func (c SlackBot) Run(ctx context.Context) Result {
 		r.addS("keychain", c.StoreErr.Error(), Fail)
 	}
 	if c.Bot == nil || c.Bot.Token == "" {
-		return r.set(Fail, "no bot token: run `watchdog secret set slack-token`")
+		return r.set(Fail, "no bot token: run `watchcat secret set slack-token`")
 	}
 	r.add("token", c.TokenSource)
 	id, err := c.Bot.AuthTest(ctx)
@@ -47,12 +47,12 @@ func (c SlackBot) Run(ctx context.Context) Result {
 	}
 	if c.TokenSource == "config.json (plaintext)" {
 		r.worsen(Warn)
-		r.Summary += "; token is plaintext in config.json, move it with `watchdog secret set slack-token`"
+		r.Summary += "; token is plaintext in config.json, move it with `watchcat secret set slack-token`"
 	}
 	return r
 }
 
-// SlackCLI reports on the optional Slack CLI. Watchdog posts through the bot
+// SlackCLI reports on the optional Slack CLI. Watchcat posts through the bot
 // token, so the CLI is informational.
 type SlackCLI struct {
 	Exec Exec

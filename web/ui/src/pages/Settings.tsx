@@ -55,7 +55,7 @@ export function SettingsPage() {
           </select></label>
           <label>Host for short refs (owner/repo#123) <input value={form.github_host} onChange={(e) => set({ github_host: e.target.value })} placeholder="github.com" /></label>
         </div>
-        <p className="muted small">PR URLs and host/owner/repo#123 refs carry their own host. Watchdog only accepts hosts gh is signed in to; see <Link to="/health">Health</Link>.</p>
+        <p className="muted small">PR URLs and host/owner/repo#123 refs carry their own host. Watchcat only accepts hosts gh is signed in to; see <Link to="/health">Health</Link>.</p>
 
         <h2>Slack</h2>
         <div className="form-grid">
@@ -80,7 +80,7 @@ export function SettingsPage() {
 
       <h2>Secrets</h2>
       <p className="muted small">Stored in the OS keychain, never in config.json or the browser. Set them from a terminal:{' '}
-        <span className="mono">watchdog secret set slack-token</span>, then <span className="mono">watchdog service restart</span>.</p>
+        <span className="mono">watchcat secret set slack-token</span>, then <span className="mono">watchcat service restart</span>.</p>
       {secrets.length ? (
         <ul className="list">{secrets.map((x) => (
           <li key={x.label}><span className="kind mono">{x.label.replace('secret ', '')}</span><span className={x.status === 'fail' ? 'bad' : ''}>{x.value}</span></li>

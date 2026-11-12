@@ -5,13 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/binarycat0/watchdog/internal/config"
-	"github.com/binarycat0/watchdog/internal/service"
+	"github.com/binarycat0/watchcat/internal/config"
+	"github.com/binarycat0/watchcat/internal/service"
 )
 
 func cmdService(e env, args []string) error {
 	if len(args) != 1 {
-		return fmt.Errorf("usage: watchdog service install|uninstall|start|stop|restart|status")
+		return fmt.Errorf("usage: watchcat service install|uninstall|start|stop|restart|status")
 	}
 	m, err := service.ForPlatform()
 	if err != nil {
@@ -31,7 +31,7 @@ func cmdService(e env, args []string) error {
 		}
 		fmt.Printf("installed %s service: %s\n", m.Name(), m.Path())
 		fmt.Println("runs:", spec.Executable, "daemon")
-		fmt.Println("next: `watchdog service start`")
+		fmt.Println("next: `watchcat service start`")
 		return nil
 	case "uninstall":
 		if err := m.Uninstall(); err != nil {
@@ -69,7 +69,7 @@ func cmdService(e env, args []string) error {
 }
 
 // serviceSpec points the service at this binary's real path and carries over
-// PATH (so it finds gh/opencode), USER and WATCHDOG_HOME.
+// PATH (so it finds gh/opencode), USER and WATCHCAT_HOME.
 func serviceSpec(e env) (service.Spec, error) {
 	exe, err := os.Executable()
 	if err != nil {
@@ -80,8 +80,8 @@ func serviceSpec(e env) (service.Spec, error) {
 	}
 	// USER is part of each keychain entry's key; launchd doesn't always set it.
 	envs := map[string]string{"PATH": os.Getenv("PATH"), "USER": os.Getenv("USER")}
-	if h := os.Getenv("WATCHDOG_HOME"); h != "" {
-		envs["WATCHDOG_HOME"] = h
+	if h := os.Getenv("WATCHCAT_HOME"); h != "" {
+		envs["WATCHCAT_HOME"] = h
 	}
 	return service.Spec{Executable: exe, Args: []string{"daemon"}, Env: envs, LogPath: e.paths.Log}, nil
 }

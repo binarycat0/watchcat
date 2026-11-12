@@ -13,16 +13,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/agent"
-	"github.com/binarycat0/watchdog/internal/api"
-	"github.com/binarycat0/watchdog/internal/config"
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/github"
-	"github.com/binarycat0/watchdog/internal/health"
-	"github.com/binarycat0/watchdog/internal/secrets"
-	"github.com/binarycat0/watchdog/internal/slack"
-	"github.com/binarycat0/watchdog/internal/worker"
-	"github.com/binarycat0/watchdog/web"
+	"github.com/binarycat0/watchcat/internal/agent"
+	"github.com/binarycat0/watchcat/internal/api"
+	"github.com/binarycat0/watchcat/internal/config"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/github"
+	"github.com/binarycat0/watchcat/internal/health"
+	"github.com/binarycat0/watchcat/internal/secrets"
+	"github.com/binarycat0/watchcat/internal/slack"
+	"github.com/binarycat0/watchcat/internal/worker"
+	"github.com/binarycat0/watchcat/web"
 )
 
 func cmdDaemon(e env, args []string) error {
@@ -69,7 +69,7 @@ func cmdDaemon(e env, args []string) error {
 		log.Warn("secret store", "err", e.tokenErr)
 	}
 	if e.tokenSource == secrets.FromConfig {
-		log.Warn("Slack token is stored in plaintext in config.json; move it with `watchdog secret set slack-token`")
+		log.Warn("Slack token is stored in plaintext in config.json; move it with `watchcat secret set slack-token`")
 	}
 	var poster slack.Poster
 	if e.cfg.Slack.BotToken != "" {
@@ -143,7 +143,7 @@ func cmdDaemon(e env, args []string) error {
 	httpErr := make(chan error, 1)
 	go func() { httpErr <- httpSrv.Serve(ln) }()
 
-	log.Info("watchdog daemon started", "version", version, "listen", "http://"+ln.Addr().String(), "db", e.paths.DB)
+	log.Info("watchcat daemon started", "version", version, "listen", "http://"+ln.Addr().String(), "db", e.paths.DB)
 
 	select {
 	case <-ctx.Done():

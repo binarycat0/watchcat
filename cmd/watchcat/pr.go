@@ -9,7 +9,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/api"
+	"github.com/binarycat0/watchcat/internal/api"
 )
 
 func cmdStatus(e env) error {
@@ -74,7 +74,7 @@ func cmdTasks(e env, args []string) error {
 
 func cmdSlack(e env, args []string) error {
 	if len(args) != 1 || args[0] != "test" {
-		return fmt.Errorf("usage: watchdog slack test")
+		return fmt.Errorf("usage: watchcat slack test")
 	}
 	c, cancel := ctx()
 	defer cancel()
@@ -88,7 +88,7 @@ func cmdSlack(e env, args []string) error {
 // cmdAgent lists the agent's sessions, to find the ID to bind a PR to.
 func cmdAgent(e env, args []string) error {
 	if len(args) != 1 || args[0] != "sessions" {
-		return fmt.Errorf("usage: watchdog agent sessions")
+		return fmt.Errorf("usage: watchcat agent sessions")
 	}
 	c, cancel := ctx()
 	defer cancel()
@@ -117,7 +117,7 @@ func truncate(s string, n int) string {
 
 func cmdPR(e env, args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: watchdog pr add|list|show|remove|check|retrigger|bind|unbind|pause|resume")
+		return fmt.Errorf("usage: watchcat pr add|list|show|remove|check|retrigger|bind|unbind|pause|resume")
 	}
 	c, cancel := ctx()
 	defer cancel()
@@ -130,7 +130,7 @@ func cmdPR(e env, args []string) error {
 			return err
 		}
 		if len(prs) == 0 {
-			fmt.Println("no PRs watched; add one with `watchdog pr add owner/repo#123`")
+			fmt.Println("no PRs watched; add one with `watchcat pr add owner/repo#123`")
 			return nil
 		}
 		// tabwriter aligns columns, like str.ljust across rows.
@@ -150,7 +150,7 @@ func cmdPR(e env, args []string) error {
 		return cmdBind(c, cl, sub, rest)
 	}
 	if len(rest) != 1 {
-		return fmt.Errorf("usage: watchdog pr %s <id|owner/repo#123|url>", sub)
+		return fmt.Errorf("usage: watchcat pr %s <id|owner/repo#123|url>", sub)
 	}
 	arg := rest[0]
 
@@ -210,16 +210,16 @@ func cmdPR(e env, args []string) error {
 			return err
 		}
 		if dry {
-			fmt.Printf("dry-run: the %s rule isn't on, so the prompt is built but not sent (see `watchdog tasks --pr %s`)\n", kind, arg)
+			fmt.Printf("dry-run: the %s rule isn't on, so the prompt is built but not sent (see `watchcat tasks --pr %s`)\n", kind, arg)
 		} else {
-			fmt.Println("prompt queued for", arg, "(see `watchdog tasks --pr", arg+"`)")
+			fmt.Println("prompt queued for", arg, "(see `watchcat tasks --pr", arg+"`)")
 		}
 		return nil
 	case "retrigger":
 		if err := cl.Retrigger(c, id); err != nil {
 			return err
 		}
-		fmt.Println("retrigger queued for", arg, "(see `watchdog tasks --pr", arg+"`)")
+		fmt.Println("retrigger queued for", arg, "(see `watchcat tasks --pr", arg+"`)")
 		return nil
 	case "pause", "resume":
 		if err := cl.SetPaused(c, id, sub == "pause"); err != nil {
@@ -233,15 +233,15 @@ func cmdPR(e env, args []string) error {
 
 // cmdBind links (or unlinks) a PR to the agent session that owns it:
 //
-//	watchdog pr bind <ref> --session <id>
-//	watchdog pr unbind <ref>
+//	watchcat pr bind <ref> --session <id>
+//	watchcat pr unbind <ref>
 func cmdBind(c context.Context, cl *api.Client, sub string, args []string) error {
 	if len(args) == 0 {
-		return fmt.Errorf("usage: watchdog pr %s <id|ref> [--session ses_... [--worktree /path]]", sub)
+		return fmt.Errorf("usage: watchcat pr %s <id|ref> [--session ses_... [--worktree /path]]", sub)
 	}
 	ref := args[0]
 	fs := flag.NewFlagSet("bind", flag.ContinueOnError)
-	session := fs.String("session", "", "opencode session ID (see `watchdog agent sessions`)")
+	session := fs.String("session", "", "opencode session ID (see `watchcat agent sessions`)")
 	worktree := fs.String("worktree", "", "the session's worktree; default: the directory the session works in")
 	if err := fs.Parse(args[1:]); err != nil {
 		return err

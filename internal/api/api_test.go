@@ -14,10 +14,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/agent"
-	"github.com/binarycat0/watchdog/internal/config"
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/worker"
+	"github.com/binarycat0/watchcat/internal/agent"
+	"github.com/binarycat0/watchcat/internal/config"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/worker"
 )
 
 type fakeGitHub struct{}

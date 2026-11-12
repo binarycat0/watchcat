@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/binarycat0/watchdog/internal/core"
+	"github.com/binarycat0/watchcat/internal/core"
 )
 
 // Workflow modes, set per rule in config.json.

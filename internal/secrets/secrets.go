@@ -20,14 +20,14 @@ import (
 	"strings"
 )
 
-// ServicePrefix namespaces watchdog's entries: the Slack token is stored as
-// service "watchdog-slack-token", account $USER.
-const ServicePrefix = "watchdog-"
+// ServicePrefix namespaces watchcat's entries: the Slack token is stored as
+// service "watchcat-slack-token", account $USER.
+const ServicePrefix = "watchcat-"
 
 // SlackToken is the Slack bot token (xoxb-...).
 const SlackToken = "slack-token"
 
-// Secret describes one secret watchdog knows about.
+// Secret describes one secret watchcat knows about.
 type Secret struct {
 	Name string // CLI name; the store's service is ServicePrefix+Name
 	Env  string // environment variable that overrides the store
@@ -39,7 +39,7 @@ func ServiceName(name string) string { return ServicePrefix + name }
 
 // Known lists every secret, so the CLI can validate names and list them.
 var Known = []Secret{
-	{Name: SlackToken, Env: "WATCHDOG_SLACK_TOKEN", Desc: "Slack bot token (xoxb-...)"},
+	{Name: SlackToken, Env: "WATCHCAT_SLACK_TOKEN", Desc: "Slack bot token (xoxb-...)"},
 }
 
 // Lookup returns the Secret with this name.
@@ -78,7 +78,7 @@ func account() string {
 	if u, err := user.Current(); err == nil {
 		return u.Username
 	}
-	return "watchdog"
+	return "watchcat"
 }
 
 func (Keyring) Get(name string) (string, error) {

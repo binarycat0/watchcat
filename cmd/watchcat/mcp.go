@@ -12,15 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/agent"
-	"github.com/binarycat0/watchdog/internal/api"
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/mcp"
+	"github.com/binarycat0/watchcat/internal/agent"
+	"github.com/binarycat0/watchcat/internal/api"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/mcp"
 )
 
-const mcpInstructions = `watchdog watches GitHub pull requests for the user: CI results, reviews,
+const mcpInstructions = `watchcat watches GitHub pull requests for the user: CI results, reviews,
 merge conflicts. Link a PR to your session with watch_pr right after you
-create it (e.g. after "gh pr create"); watchdog then checks it on a schedule
+create it (e.g. after "gh pr create"); watchcat then checks it on a schedule
 and may queue prompts back into your session when CI fails or reviewers
 leave unresolved threads, depending on the user's settings.
 Use pr_status to see a PR's checks, failing jobs and review state.
@@ -55,19 +55,19 @@ func cmdMCP(e env, args []string) error {
 	cl.HTTP = &http.Client{Timeout: 60 * time.Second}
 	t := &mcpTools{cl: cl, cwd: cwd}
 	s := &mcp.Server{
-		Name: "watchdog", Version: version, Instructions: mcpInstructions,
+		Name: "watchcat", Version: version, Instructions: mcpInstructions,
 		Tools: []mcp.Tool{
-			{Name: "watch_pr", Description: "Start watching a PR and link it to your opencode session, so watchdog tracks its CI and reviews and can send follow-ups to this session. Call this right after creating a PR.",
+			{Name: "watch_pr", Description: "Start watching a PR and link it to your opencode session, so watchcat tracks its CI and reviews and can send follow-ups to this session. Call this right after creating a PR.",
 				InputSchema: schema(map[string]any{"pr": prArg, "session_id": sessionArg}), Handler: t.watchPR},
 			{Name: "pr_status", Description: "Current state of a watched PR: CI result, failing checks with links, review decision, unresolved threads, merge conflicts, and the latest CI job runs with durations.",
 				InputSchema: schema(map[string]any{"pr": prArg}), Handler: t.prStatus},
 			{Name: "my_prs", Description: "PRs linked to your opencode session, with their status.",
 				InputSchema: schema(map[string]any{"session_id": sessionArg}), Handler: t.myPRs},
-			{Name: "check_now", Description: "Ask watchdog to re-check a PR now instead of waiting for the next scheduled check (e.g. after you pushed). Read the result with pr_status a minute later.",
+			{Name: "check_now", Description: "Ask watchcat to re-check a PR now instead of waiting for the next scheduled check (e.g. after you pushed). Read the result with pr_status a minute later.",
 				InputSchema: schema(map[string]any{"pr": prArg}), Handler: t.checkNow},
 			{Name: "unwatch_pr", Description: "Unlink a PR from your session and pause checks (history is kept). Use when you hand the PR over or abandon it.",
 				InputSchema: schema(map[string]any{"pr": prArg}), Handler: t.unwatchPR},
-			{Name: "health", Description: "Whether watchdog and the tools it needs (gh, Slack, opencode) are working. Use when another tool fails unexpectedly.",
+			{Name: "health", Description: "Whether watchcat and the tools it needs (gh, Slack, opencode) are working. Use when another tool fails unexpectedly.",
 				InputSchema: schema(map[string]any{}), Handler: t.health},
 		},
 	}
@@ -92,7 +92,7 @@ func parseArgs(raw json.RawMessage) (prArgs, error) {
 // daemonErr turns "connection refused" into something an agent can relay.
 func daemonErr(err error) error {
 	if errors.Is(err, api.ErrDaemonDown) {
-		return errors.New("the watchdog daemon is not running; ask the user to start it (watchdog service start)")
+		return errors.New("the watchcat daemon is not running; ask the user to start it (watchcat service start)")
 	}
 	return err
 }
@@ -217,7 +217,7 @@ func (t *mcpTools) watchPR(ctx context.Context, raw json.RawMessage) (string, er
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("Watching %s, linked to session %s (worktree %s). Watchdog checks it on a schedule; "+
+	return fmt.Sprintf("Watching %s, linked to session %s (worktree %s). Watchcat checks it on a schedule; "+
 		"depending on the user's settings it may queue prompts into this session when CI fails or review threads need attention. "+
 		"Use pr_status to see its state.", d.Ref(), session, d.AgentWorktree), nil
 }
@@ -335,7 +335,7 @@ func (t *mcpTools) unwatchPR(ctx context.Context, raw json.RawMessage) (string, 
 	if err := t.cl.SetPaused(ctx, id, true); err != nil {
 		return "", daemonErr(err)
 	}
-	return "Unlinked " + ref + " from your session and paused its checks. The user can resume it in watchdog.", nil
+	return "Unlinked " + ref + " from your session and paused its checks. The user can resume it in watchcat.", nil
 }
 
 func (t *mcpTools) health(ctx context.Context, _ json.RawMessage) (string, error) {
@@ -344,7 +344,7 @@ func (t *mcpTools) health(ctx context.Context, _ json.RawMessage) (string, error
 		return "", daemonErr(err)
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "watchdog daemon: running; tools overall: %s\n", rep.Status)
+	fmt.Fprintf(&b, "watchcat daemon: running; tools overall: %s\n", rep.Status)
 	for _, r := range rep.Results {
 		req := "optional"
 		if r.Required {

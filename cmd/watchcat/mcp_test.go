@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/agent"
-	"github.com/binarycat0/watchdog/internal/api"
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/worker"
+	"github.com/binarycat0/watchcat/internal/agent"
+	"github.com/binarycat0/watchcat/internal/api"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/worker"
 )
 
 // fakeOpencode knows a set of sessions and validates like agent.Opencode.
@@ -112,7 +112,7 @@ func TestMCPSessionAmbiguity(t *testing.T) {
 
 func TestMCPDaemonDown(t *testing.T) {
 	tools := &mcpTools{cl: api.NewClient("127.0.0.1:1"), cwd: t.TempDir()}
-	if _, err := tools.health(context.Background(), nil); err == nil || !strings.Contains(err.Error(), "watchdog service start") {
+	if _, err := tools.health(context.Background(), nil); err == nil || !strings.Contains(err.Error(), "watchcat service start") {
 		t.Fatalf("%v", err)
 	}
 }

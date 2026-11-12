@@ -4,7 +4,7 @@ import "context"
 
 // Opencode checks that the opencode CLI is installed. You run it yourself in
 // a terminal (one process can hold several sessions), so there is no server
-// for watchdog to reach. Optional until agent hand-off uses it.
+// for watchcat to reach. Optional until agent hand-off uses it.
 type Opencode struct {
 	Exec Exec
 }

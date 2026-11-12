@@ -1,4 +1,4 @@
-module github.com/binarycat0/watchdog
+module github.com/binarycat0/watchcat
 
 go 1.26.1
 

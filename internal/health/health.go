@@ -1,5 +1,5 @@
-// Package health checks the external tools watchdog depends on (gh, Slack,
-// opencode) and reports their state for `watchdog health`, `doctor` and the
+// Package health checks the external tools watchcat depends on (gh, Slack,
+// opencode) and reports their state for `watchcat health`, `doctor` and the
 // web status page.
 package health
 

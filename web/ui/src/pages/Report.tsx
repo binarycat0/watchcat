@@ -24,7 +24,7 @@ export function ReportPage() {
       <div className="header-row">
         <div>
           <h1>Report</h1>
-          <p className="muted">PR lifecycles for PRs open at any time in the period. CI failures and runs count what watchdog saw while watching.</p>
+          <p className="muted">PR lifecycles for PRs open at any time in the period. CI failures and runs count what watchcat saw while watching.</p>
         </div>
         <label className="muted small">Period{' '}
           <select value={days} onChange={(e) => setDays(Number(e.target.value))}>

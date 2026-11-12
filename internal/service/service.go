@@ -1,4 +1,4 @@
-// Package service installs watchdog as a per-user background service:
+// Package service installs watchcat as a per-user background service:
 // a launchd agent on macOS, a systemd user unit on Linux. None of this needs
 // the daemon to be running.
 package service
@@ -16,13 +16,13 @@ import (
 )
 
 const (
-	Label    = "io.github.binarycat0.watchdog" // launchd label
-	UnitName = "watchdog.service"              // systemd unit
+	Label    = "io.github.binarycat0.watchcat" // launchd label
+	UnitName = "watchcat.service"              // systemd unit
 )
 
 // Spec is everything needed to render a service definition.
 type Spec struct {
-	Executable string            // absolute path to the watchdog binary
+	Executable string            // absolute path to the watchcat binary
 	Args       []string          // e.g. ["daemon"]
 	Env        map[string]string // PATH etc.; launchd starts with a bare environment
 	LogPath    string
@@ -171,7 +171,7 @@ func (l *Launchd) Uninstall() error {
 
 func (l *Launchd) Start() error {
 	if _, err := os.Stat(l.Path()); err != nil {
-		return fmt.Errorf("not installed: run `watchdog service install` first")
+		return fmt.Errorf("not installed: run `watchcat service install` first")
 	}
 	if l.loaded() {
 		_, err := run("launchctl", "kickstart", l.domain()+"/"+Label)
@@ -242,7 +242,7 @@ func (s *Systemd) Name() string { return "systemd" }
 func (s *Systemd) Path() string { return filepath.Join(s.Dir, UnitName) }
 
 var unitTmpl = template.Must(template.New("unit").Funcs(template.FuncMap{"q": strconv.Quote}).Parse(`[Unit]
-Description=watchdog PR monitor
+Description=watchcat PR monitor
 After=network-online.target
 
 [Service]

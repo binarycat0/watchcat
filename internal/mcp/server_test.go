@@ -10,7 +10,7 @@ import (
 )
 
 func TestServe(t *testing.T) {
-	s := &Server{Name: "watchdog", Version: "test", Instructions: "use watch_pr",
+	s := &Server{Name: "watchcat", Version: "test", Instructions: "use watch_pr",
 		Tools: []Tool{
 			{Name: "echo", Description: "echo back", Handler: func(ctx context.Context, a json.RawMessage) (string, error) {
 				var p struct{ Msg string }

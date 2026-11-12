@@ -13,9 +13,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/agent"
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/health"
+	"github.com/binarycat0/watchcat/internal/agent"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/health"
 )
 
 // ErrDaemonDown means nothing is listening on the API address.

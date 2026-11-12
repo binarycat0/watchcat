@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/binarycat0/watchdog/internal/slack"
+	"github.com/binarycat0/watchcat/internal/slack"
 )
 
 // fakeExec answers commands from a map keyed by the joined argv.
@@ -100,13 +100,13 @@ func TestSlackBot(t *testing.T) {
 			return
 		}
 		w.Header().Set("X-OAuth-Scopes", scopes)
-		w.Write([]byte(`{"ok":true,"team":"Dremio","url":"https://dremio.slack.com/","user":"watchdog","user_id":"U1","bot_id":"B1"}`))
+		w.Write([]byte(`{"ok":true,"team":"Dremio","url":"https://dremio.slack.com/","user":"watchcat","user_id":"U1","bot_id":"B1"}`))
 	}))
 	defer ts.Close()
 	bot := func(tok string) *slack.Bot { return &slack.Bot{Token: tok, BaseURL: ts.URL} }
 
 	r := SlackBot{Bot: bot("good"), Channel: "C1"}.Run(context.Background())
-	if r.Status != OK || r.Summary != "authenticated as watchdog in Dremio" {
+	if r.Status != OK || r.Summary != "authenticated as watchcat in Dremio" {
 		t.Fatalf("%+v", r)
 	}
 	if r = (SlackBot{Bot: bot("bad"), Channel: "C1"}).Run(context.Background()); r.Status != Fail || !strings.Contains(r.Summary, "invalid_auth") {
@@ -163,8 +163,8 @@ func TestRunOverall(t *testing.T) {
 
 func TestSetup(t *testing.T) {
 	dir := t.TempDir()
-	bin := dir + "/bin/watchdog"
-	link := dir + "/link/watchdog"
+	bin := dir + "/bin/watchcat"
+	link := dir + "/link/watchcat"
 	os.MkdirAll(dir+"/bin", 0o755)
 	os.MkdirAll(dir+"/link", 0o755)
 	os.WriteFile(bin, []byte("x"), 0o755)
@@ -184,7 +184,7 @@ func TestSetup(t *testing.T) {
 	}
 
 	bad := Setup{Bin: bin, Link: dir + "/nope", Service: svc,
-		Secrets: []SecretStatus{{Name: "slack-token", Source: "config.json (plaintext)", Masked: "xoxb****abcd", Hint: "watchdog secret set slack-token"}}}.Run(context.Background())
+		Secrets: []SecretStatus{{Name: "slack-token", Source: "config.json (plaintext)", Masked: "xoxb****abcd", Hint: "watchcat secret set slack-token"}}}.Run(context.Background())
 	if bad.Status != Warn || !hasDetail(bad, "symlink", Fail) || !hasDetail(bad, "secret slack-token", Fail) {
 		t.Fatalf("%+v", bad)
 	}

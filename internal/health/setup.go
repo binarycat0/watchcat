@@ -17,17 +17,17 @@ type SecretStatus struct {
 	Hint   string `json:"hint,omitempty"` // command to set it
 }
 
-// Setup checks watchdog's own installation: the binary and its symlink,
+// Setup checks watchcat's own installation: the binary and its symlink,
 // PATH, the background service, and where each secret comes from.
 type Setup struct {
-	Bin      string // ~/.watchdog/bin/watchdog
-	Link     string // ~/.local/bin/watchdog
+	Bin      string // ~/.watchcat/bin/watchcat
+	Link     string // ~/.local/bin/watchcat
 	Service  func() (manager, status string, err error)
 	Secrets  []SecretStatus
 	LegacyIn string // old data directory still present, if any
 	// OtherWatchers lists other schedulers that act on PRs (e.g. the old
 	// Python pr-watchdog's launchd job); they would act regardless of
-	// watchdog's dry-run settings.
+	// watchcat's dry-run settings.
 	OtherWatchers []string
 }
 
@@ -88,7 +88,7 @@ func (c Setup) Run(ctx context.Context) Result {
 		warn("other watcher", o, "another PR watcher is still scheduled")
 	}
 	if c.LegacyIn != "" {
-		warn("old data", c.LegacyIn+" still exists; watchdog init moves it", "old data directory left over")
+		warn("old data", c.LegacyIn+" still exists; watchcat init moves it", "old data directory left over")
 	}
 	return r
 }

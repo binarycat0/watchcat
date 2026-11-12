@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/binarycat0/watchdog/internal/core"
-	"github.com/binarycat0/watchdog/internal/github"
+	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/github"
 )
 
 func snapWith(f func(*core.Snapshot)) core.Snapshot {
