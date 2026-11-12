@@ -35,3 +35,6 @@ go.work.sum
 
 
 node_modules/
+
+# TypeScript incremental build cache (rewritten by `make ui`)
+*.tsbuildinfo
