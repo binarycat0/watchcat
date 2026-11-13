@@ -11,14 +11,27 @@ Documentation: https://tools.binaryc.at/watchcat
 
 ## Installation
 
+
 ```bash
 curl -fsSL https://tools.binaryc.at/watchcat/install.sh | sh
+```
+
+The script installs the latest release to `~/.watchcat/bin` (no sudo) after checking its SHA-256 checksum. Run it again to upgrade. 
+
+Set `WATCHCAT_VERSION=v0.1.2` to pin a release, or `WATCHCAT_BIN_DIR` to link somewhere other than `~/.local/bin`. 
+
+To uninstall, run `watchcat service uninstall`, then delete `~/.local/bin/watchcat` and `~/.watchcat`.
+
+
+### Quick start
+
+```bash
 watchcat init                # writes ~/.watchcat/config.json
 watchcat service install     # launchd agent (macOS) or systemd --user unit (Linux)
 watchcat service start
 ```
 
-Requires:
+### Prerequisites
 
 - macOS or Linux
 - `gh`, signed in with the `repo` scope (`gh auth login`)
@@ -26,13 +39,6 @@ Requires:
 - optional: a Slack bot token with `chat:write` ([Slack](doc/configuration.md#slack)), `opencode`
 
 `watchcat doctor` checks all of this.
-
-The script installs the latest release to `~/.watchcat/bin` (no sudo) after
-checking its SHA-256 checksum. Run it again to upgrade. Set
-`WATCHCAT_VERSION=v0.1.2` to pin a release, or `WATCHCAT_BIN_DIR` to link
-somewhere other than `~/.local/bin`. To uninstall, run
-`watchcat service uninstall`, then delete `~/.local/bin/watchcat` and
-`~/.watchcat`.
 
 ## Usage
 
@@ -57,10 +63,12 @@ More:
 
 ## Development
 
-Requires:
+### Prerequisites
 
 - `go` 1.26+
 - `node` 20+ and `npm` (web UI)
+
+## Install
 
 ```bash
 make install     # build UI + binary, install like install.sh does
