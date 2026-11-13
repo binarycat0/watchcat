@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -149,64 +148,6 @@ func PathsIn(dir string) Paths {
 		DB:     filepath.Join(dir, "watchcat.db"),
 		Log:    filepath.Join(dir, "logs", "watchcat.log"),
 	}
-}
-
-// LegacyDir is where older versions kept their data, or "" if nothing is
-// there. Checked newest first: ~/.watchdog (before the rename to watchcat),
-// then the platform config directory used before that.
-func LegacyDir() string {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return ""
-	}
-	cfgDir := filepath.Join(home, ".config", "watchdog")
-	if runtime.GOOS == "darwin" {
-		cfgDir = filepath.Join(home, "Library", "Application Support", "watchdog")
-	}
-	for _, dir := range []string{filepath.Join(home, ".watchdog"), cfgDir} {
-		if _, err := os.Stat(filepath.Join(dir, "config.json")); err == nil {
-			return dir
-		}
-	}
-	return ""
-}
-
-// legacyFiles maps the files older versions kept to their current names.
-var legacyFiles = [][2]string{
-	{"config.json", "config.json"},
-	{"watchdog.db", "watchcat.db"},
-	{"watchdog.db-wal", "watchcat.db-wal"},
-	{"watchdog.db-shm", "watchcat.db-shm"},
-}
-
-// MigrateLegacy moves config.json and the database from the old location
-// into p.Dir, if p.Dir has none yet. It returns the directory it moved from,
-// or "" if there was nothing to do. Stop the daemon first: the database is
-// moved with its WAL files.
-func MigrateLegacy(p Paths) (string, error) {
-	return migrateFrom(LegacyDir(), p)
-}
-
-func migrateFrom(old string, p Paths) (string, error) {
-	if old == "" || old == p.Dir {
-		return "", nil
-	}
-	if _, err := os.Stat(p.Config); err == nil {
-		return "", nil // already set up here; leave the old copy alone
-	}
-	if err := os.MkdirAll(p.Dir, 0o700); err != nil {
-		return "", err
-	}
-	for _, f := range legacyFiles {
-		src := filepath.Join(old, f[0])
-		if _, err := os.Stat(src); err != nil {
-			continue
-		}
-		if err := os.Rename(src, filepath.Join(p.Dir, f[1])); err != nil {
-			return "", fmt.Errorf("move %s: %w", src, err)
-		}
-	}
-	return old, nil
 }
 
 // Load reads config.json, falling back to defaults for a missing file or

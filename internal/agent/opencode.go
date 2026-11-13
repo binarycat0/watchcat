@@ -1,7 +1,7 @@
 // Package agent hands work to AI agent sessions. Today that is opencode,
-// driven through its CLI (`opencode api <method> <endpoint>`) the same way
-// the earlier Python pr-watchdog did: no server to run, and each call runs
-// from the session's worktree so opencode resolves the right project.
+// driven through its CLI (`opencode api <method> <endpoint>`): no server to
+// run, and each call runs from the session's worktree so opencode resolves
+// the right project.
 package agent
 
 import (

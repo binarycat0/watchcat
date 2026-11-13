@@ -55,4 +55,3 @@ nav:
   - Web UI: web-ui.md
   - HTTP API: api.md
   - How it works: architecture.md
-  - Upgrading from watchdog: upgrading.md

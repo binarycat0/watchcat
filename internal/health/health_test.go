@@ -178,11 +178,6 @@ func TestSetup(t *testing.T) {
 		t.Fatalf("%+v", ok)
 	}
 
-	other := Setup{Bin: bin, Link: link, Service: svc, OtherWatchers: []string{"local.pr-watchdog is loaded"}}.Run(context.Background())
-	if other.Status != Warn || !hasDetail(other, "other watcher", Fail) {
-		t.Fatalf("another watcher should warn: %+v", other)
-	}
-
 	bad := Setup{Bin: bin, Link: dir + "/nope", Service: svc,
 		Secrets: []SecretStatus{{Name: "slack-token", Source: "config.json (plaintext)", Masked: "xoxb****abcd", Hint: "watchcat secret set slack-token"}}}.Run(context.Background())
 	if bad.Status != Warn || !hasDetail(bad, "symlink", Fail) || !hasDetail(bad, "secret slack-token", Fail) {

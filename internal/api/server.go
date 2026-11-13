@@ -203,7 +203,7 @@ func (s *Server) Handler(pid int) http.Handler {
 			writeJSON(w, http.StatusBadRequest, errorResponse{"invalid JSON body"})
 			return
 		}
-		// Like the Python pr-watchdog: only link a session that exists, isn't
+		// Only link a session that exists, isn't
 		// archived and really works in that worktree.
 		if req.Session != "" && s.Agent != nil {
 			sess, err := s.Agent.Resolve(r.Context(), req.Session, req.Worktree)
