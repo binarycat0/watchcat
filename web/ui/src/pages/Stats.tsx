@@ -12,7 +12,7 @@ function Tile({ k, v, sub }: { k: string; v: string | number; sub?: string }) {
 
 const durTile = (s: Stats, f: (s: Stats) => number) => (s.count ? human(f(s)) : '–');
 
-export function ReportPage() {
+export function StatsPage() {
   const [days, setDays] = useState(30);
   const report = useQuery({ queryKey: ['report', days], queryFn: () => api.report(days), refetchInterval: 30000 });
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ export function ReportPage() {
     <>
       <div className="header-row">
         <div>
-          <h1>Report</h1>
+          <h1>Stats</h1>
           <p className="muted">PR lifecycles for PRs open at any time in the period. CI failures and runs count what watchcat saw while watching.</p>
         </div>
         <label className="muted small">Period{' '}
