@@ -6,6 +6,7 @@ on:
     paths:
       - doc/**
       - README.md
+      - install.sh
       - mkdocs_hooks.py
       - mkdocs.yml
       - docs-requirements.txt

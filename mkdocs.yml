@@ -1,6 +1,6 @@
 site_name: watchcat
 site_description: A personal daemon that watches your pull requests, notifies Slack, and hands work to opencode.
-site_url: https://binarycat0.github.io/watchcat/
+site_url: https://tools.binaryc.at/watchcat/
 repo_url: https://github.com/binarycat0/watchcat
 repo_name: binarycat0/watchcat
 edit_uri: edit/main/doc/
