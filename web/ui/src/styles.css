@@ -83,6 +83,7 @@ h2 { font-size: 15px; margin: 24px 0 8px; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 16px; }
 .toolbar form { display: flex; gap: 8px; flex: 1; min-width: 260px; }
+.toolbar.stacked { flex-direction: column; align-items: stretch; }
 input, select {
   font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px;
   background: var(--bg); color: var(--fg); min-width: 0;
