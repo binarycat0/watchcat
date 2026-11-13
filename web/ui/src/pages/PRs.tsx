@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { WatchActions } from '../WatchActions';
 import { api } from '../api';
-import { ActionButton, Empty, Pill, Time, useToast } from '../components';
-import { ago, isFinished, needsAttention, prRef, prStatus, prURL } from '../format';
+import { Empty, Pill, Time, useToast } from '../components';
+import { ago, needsAttention, prRef, prURL, watchState } from '../format';
 import type { PR } from '../types';
 
 type Filter = 'all' | 'attention' | 'paused';
@@ -12,8 +13,8 @@ export function PRsPage() {
   const prs = useQuery({ queryKey: ['prs'], queryFn: api.prs });
   const [filter, setFilter] = useState<Filter>('all');
   const list = prs.data ?? [];
-  const counts = { all: list.length, attention: list.filter(needsAttention).length, paused: list.filter((p) => p.paused).length };
-  const shown = list.filter((p) => filter === 'all' || (filter === 'attention' ? needsAttention(p) : p.paused));
+  const counts = { all: list.length, attention: list.filter(needsAttention).length, paused: list.filter((p) => watchState(p) === 'paused').length };
+  const shown = list.filter((p) => filter === 'all' || (filter === 'attention' ? needsAttention(p) : watchState(p) === 'paused'));
 
   return (
     <>
@@ -31,7 +32,7 @@ export function PRsPage() {
       {prs.isError && <Empty>{(prs.error as Error).message}</Empty>}
       {prs.isSuccess && (shown.length ? (
         <table>
-          <thead><tr><th>PR</th><th>Status</th><th className="hide-sm">Checked</th><th /></tr></thead>
+          <thead><tr><th>PR</th><th>Watching</th><th>Status</th><th className="actions">Actions</th></tr></thead>
           <tbody>{shown.map((p) => <Row key={p.id} p={p} />)}</tbody>
         </table>
       ) : (
@@ -43,24 +44,25 @@ export function PRsPage() {
 
 function Row({ p }: { p: PR }) {
   const navigate = useNavigate();
-  const failed = p.snapshot?.failed_checks?.length ?? 0;
   return (
     <tr className="click" onClick={(e) => { if (!(e.target as HTMLElement).closest('a')) navigate(`/pr/${p.id}`); }}>
       <td>
         <a href={prURL(p)} target="_blank" rel="noopener">{prRef(p)}</a>
         <span className="title">{p.snapshot?.title}</span>
       </td>
-      <td><Pill status={prStatus(p)} /><div className="muted small">{p.summary}</div></td>
-      <td className="hide-sm"><Time ts={p.last_checked}>{ago(p.last_checked)}</Time></td>
-      <td className="actions">
-        <ActionButton fn={() => api.check(p.id)} ok="Check queued">Check</ActionButton>
-        {failed > 0 && <ActionButton fn={() => api.retrigger(p.id)} ok="Retrigger queued; see Tasks">Retrigger</ActionButton>}
-        {!isFinished(p) && (
-          <ActionButton fn={() => api.setPaused(p.id, !p.paused)} ok={p.paused ? 'Resumed' : 'Paused'}>
-            {p.paused ? 'Resume' : 'Pause'}
-          </ActionButton>
-        )}
+      <td>
+        <Pill status={watchState(p)} />
+        <div className="muted small">
+          checked <Time ts={p.last_checked}>{ago(p.last_checked)}</Time>
+          {watchState(p) === 'watching' && <>, next <Time ts={p.next_check}>{ago(p.next_check)}</Time></>}
+        </div>
       </td>
+      <td>
+        <Pill status={p.status} />
+        {/* Closed and merged PRs have the state itself as summary; don't repeat it. */}
+        {p.summary && p.summary !== p.status && <div className="muted small">{p.summary}</div>}
+      </td>
+      <td className="actions"><WatchActions p={p} variant="menu" /></td>
     </tr>
   );
 }

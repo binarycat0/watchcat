@@ -76,6 +76,14 @@ nav a.active { background: var(--idle-bg); font-weight: 600; }
 .menu-list a { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 6px; color: var(--fg); }
 .menu-list a:hover { background: var(--idle-bg); text-decoration: none; }
 .menu-list a.active { font-weight: 600; }
+.menu-list .menu-item {
+  display: block; width: 100%; text-align: left; padding: 6px 10px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--fg); font-size: 13px; white-space: nowrap;
+}
+.menu-list .menu-item:hover { background: var(--idle-bg); text-decoration: none; }
+.menu-list .menu-item.danger { color: var(--err); }
+td.actions .menu { display: inline-block; text-align: left; }
+td.actions .menu-list .menu-item { margin: 0; }
 
 main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 48px; }
 h1 { font-size: 20px; margin: 0 0 4px; }
@@ -115,7 +123,7 @@ tr.click { cursor: pointer; }
 .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 10px; }
 .pager > .muted { margin-right: auto; }
 tr.click:hover td { background: var(--panel); }
-td.actions { white-space: nowrap; text-align: right; }
+td.actions, th.actions { white-space: nowrap; text-align: right; }
 td.actions button + button { margin-left: 4px; }
 .title { display: block; color: var(--muted); font-size: 13px; max-width: 420px; }
 details summary { cursor: pointer; color: var(--accent); }
@@ -174,6 +182,8 @@ label.check input { flex: none; }
 .list .kind { min-width: 130px; }
 
 .header-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 8px; }
+.section-head h2 { margin: 0; }
 .header-row .btns { display: flex; gap: 6px; flex-wrap: wrap; }
 
 #toast {

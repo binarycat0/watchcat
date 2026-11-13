@@ -31,6 +31,12 @@ export const prRef = (p: PR) => `${host(p) === 'github.com' ? '' : host(p) + '/'
 export const prURL = (p: PR) => `https://${host(p)}/${p.owner}/${p.repo}/pull/${p.number}`;
 
 export const isFinished = (p: PR) => p.status === 'merged' || p.status === 'closed';
-export const prStatus = (p: PR) => (p.paused && !isFinished(p) ? 'paused' : p.status);
 export const needsAttention = (p: PR) =>
   !p.paused && ['ci_failed', 'conflict', 'changes_requested', 'unresolved_comments', 'error'].includes(p.status);
+
+/**
+ * Whether watchcat is still checking the PR, separate from the PR's own
+ * state: merged and closed PRs are auto-paused, so they show "stopped".
+ */
+export const watchState = (p: PR): 'watching' | 'paused' | 'stopped' =>
+  isFinished(p) ? 'stopped' : p.paused ? 'paused' : 'watching';

@@ -3,9 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { ActionButton, Empty, Pill, Time, useToast } from '../components';
-import { ago, human, isFinished, prRef, prStatus } from '../format';
+import { ago, human, prRef, watchState } from '../format';
 import type { AgentSession, CIRun, PRDetail, RuleInfo, Snapshot } from '../types';
 import { TaskTable } from './Tasks';
+import { WatchActions } from '../WatchActions';
 
 export function PRPage() {
   const id = Number(useParams().id);
@@ -27,20 +28,12 @@ export function PRPage() {
           <div className="muted small"><Link to="/">Pull requests</Link> /</div>
           <h1>{s?.title || prRef(p)}</h1>
           <div>
-            <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a> · <Pill status={prStatus(p)} />{' '}
-            <span className="muted small">checked {ago(p.last_checked)}{p.paused ? '' : `, next ${ago(p.next_check)}`}</span>
+            <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a> · <Pill status={watchState(p)} /> <Pill status={p.status} />{' '}
+            <span className="muted small">checked {ago(p.last_checked)}{watchState(p) === 'watching' ? `, next ${ago(p.next_check)}` : ''}</span>
           </div>
           <div className="muted small" style={{ marginTop: 4 }}>{p.summary}</div>
         </div>
-        <div className="btns">
-          <ActionButton fn={() => api.check(id)} ok="Check queued">Check now</ActionButton>
-          {(s?.failed_checks?.length ?? 0) > 0 && <ActionButton fn={() => api.retrigger(id)} ok="Retrigger queued; see Tasks below">Retrigger failed</ActionButton>}
-          {!isFinished(p) && (
-            <ActionButton fn={() => api.setPaused(id, !p.paused)} ok={p.paused ? 'Resumed' : 'Paused'}>{p.paused ? 'Resume' : 'Pause'}</ActionButton>
-          )}
-          <ActionButton className="danger" confirm={`Stop watching ${prRef(p)}?`}
-            fn={async () => { await api.removePR(id); navigate('/'); }} ok="Removed">Remove</ActionButton>
-        </div>
+        <WatchActions p={p} variant="buttons" onRemoved={() => navigate('/')} />
       </div>
 
       <h2>Agent session</h2>
@@ -50,7 +43,10 @@ export function PRPage() {
       {s ? <Facts s={s} /> : <Empty>Not checked yet.</Empty>}
 
       {!!s?.failed_checks?.length && (<>
-        <h2>Failed checks</h2>
+        <div className="section-head">
+          <h2>Failed checks</h2>
+          <ActionButton fn={() => api.retrigger(id)} ok="Retrigger queued; see Tasks below">Retrigger failed</ActionButton>
+        </div>
         <ul className="list">{s.failed_checks.map((c) => <li key={c.name}>{c.url ? <a href={c.url} target="_blank" rel="noopener">{c.name}</a> : c.name}</li>)}</ul>
       </>)}
       {!!s?.pending_checks?.length && (<>
