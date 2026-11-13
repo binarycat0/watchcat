@@ -9,8 +9,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,8 +20,10 @@ import (
 // Config is the on-disk configuration. The struct tags (`json:"..."`) tell
 // encoding/json which keys map to which fields, like a pydantic model.
 type Config struct {
-	// Listen is the API/web address. Keep it on loopback: the API has no auth.
-	Listen string `json:"listen"`
+	// Host and Port are where the daemon serves the API and web UI. Keep
+	// Host on loopback: the API has no auth.
+	Host string `json:"host"`
+	Port int    `json:"port"`
 	// PollInterval is how often each PR is checked, e.g. "5m".
 	PollInterval Duration `json:"poll_interval"`
 	// TickInterval is how often the worker pool looks for due work.
@@ -94,9 +98,13 @@ func (d *Duration) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// Addr is Host:Port, the address the daemon listens on and clients dial.
+func (c Config) Addr() string { return net.JoinHostPort(c.Host, strconv.Itoa(c.Port)) }
+
 func Default() Config {
 	return Config{
-		Listen:       "127.0.0.1:7878",
+		Host:         "127.0.0.1",
+		Port:         7878,
 		PollInterval: Duration{5 * time.Minute},
 		TickInterval: Duration{15 * time.Second},
 		Workers:      4,
@@ -165,6 +173,9 @@ func Load(p Paths) (Config, error) {
 	// the file, so defaults survive.
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return cfg, fmt.Errorf("parse %s: %w", p.Config, err)
+	}
+	if cfg.Port < 1 || cfg.Port > 65535 {
+		return cfg, fmt.Errorf("%s: port %d out of range 1-65535", p.Config, cfg.Port)
 	}
 	return cfg, nil
 }

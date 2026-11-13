@@ -20,7 +20,7 @@ func cmdStatus(e env) error {
 		return err
 	}
 	fmt.Printf("daemon:  running (pid %d, version %s, up %s)\n", st.PID, st.Version, st.Uptime)
-	fmt.Printf("web:     http://%s\n", e.cfg.Listen)
+	fmt.Printf("web:     http://%s\n", e.cfg.Addr())
 	fmt.Printf("db:      %s\n", st.DBPath)
 	fmt.Printf("prs:     %d watched, %d tasks running\n", st.PRs, len(st.Running))
 	slackState := "not configured"

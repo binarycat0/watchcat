@@ -33,7 +33,7 @@ func cmdDoctor(e env) error {
 	c, cancel := ctx()
 	defer cancel()
 	if st, err := e.client().Status(c); err != nil {
-		report("warn", "daemon", fmt.Sprintf("not reachable at %s: %v", e.cfg.Listen, err))
+		report("warn", "daemon", fmt.Sprintf("not reachable at %s: %v", e.cfg.Addr(), err))
 	} else {
 		report("ok", "daemon", fmt.Sprintf("pid %d, version %s, %d PRs", st.PID, st.Version, st.PRs))
 	}

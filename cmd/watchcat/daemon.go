@@ -27,10 +27,12 @@ import (
 
 func cmdDaemon(e env, args []string) error {
 	fs := flag.NewFlagSet("daemon", flag.ContinueOnError)
-	listen := fs.String("listen", e.cfg.Listen, "API/web listen address (loopback only)")
+	fs.StringVar(&e.cfg.Host, "host", e.cfg.Host, "API/web host (loopback only)")
+	fs.IntVar(&e.cfg.Port, "port", e.cfg.Port, "API/web port")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
+	listen := e.cfg.Addr()
 
 	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
 	if _, err := config.Init(e.paths); err != nil {
@@ -43,9 +45,9 @@ func cmdDaemon(e env, args []string) error {
 	defer store.Close()
 
 	// Bind first so a second daemon fails fast instead of double-scheduling.
-	ln, err := net.Listen("tcp", *listen)
+	ln, err := net.Listen("tcp", listen)
 	if err != nil {
-		return fmt.Errorf("listen on %s (is another daemon running?): %w", *listen, err)
+		return fmt.Errorf("listen on %s (is another daemon running?): %w", listen, err)
 	}
 	if !isLoopback(ln.Addr()) {
 		ln.Close()

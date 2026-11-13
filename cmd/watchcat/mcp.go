@@ -51,7 +51,7 @@ func cmdMCP(e env, args []string) error {
 	}
 	// The agent runs these one at a time; a slower timeout than the CLI's
 	// covers gh/opencode calls the daemon makes on the tool's behalf.
-	cl := api.NewClient(e.cfg.Listen)
+	cl := api.NewClient(e.cfg.Addr())
 	cl.HTTP = &http.Client{Timeout: 60 * time.Second}
 	t := &mcpTools{cl: cl, cwd: cwd}
 	s := &mcp.Server{
