@@ -180,10 +180,10 @@ func (c *Client) Health(ctx context.Context, refresh bool) (health.Report, error
 	return r, c.do(ctx, "GET", path, nil, &r)
 }
 
-// Report fetches PR lifecycle stats; days <= 0 means all time.
-func (c *Client) Report(ctx context.Context, days int) (core.Report, error) {
+// Stats fetches PR lifecycle stats; days <= 0 means all time.
+func (c *Client) Stats(ctx context.Context, days int) (core.Report, error) {
 	var r core.Report
-	path := "/api/v1/report"
+	path := "/api/v1/stats"
 	if days > 0 {
 		path += "?days=" + strconv.Itoa(days)
 	}

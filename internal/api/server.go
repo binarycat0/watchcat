@@ -282,7 +282,7 @@ func (s *Server) Handler(pid int) http.Handler {
 		s.Pool.Poke()
 		w.WriteHeader(http.StatusAccepted)
 	}))
-	mux.HandleFunc("GET /api/v1/report", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /api/v1/stats", func(w http.ResponseWriter, r *http.Request) {
 		var since *time.Time
 		if d, err := strconv.Atoi(r.URL.Query().Get("days")); err == nil && d > 0 {
 			t := time.Now().AddDate(0, 0, -d)

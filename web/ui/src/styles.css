@@ -104,6 +104,12 @@ button:disabled { opacity: .5; cursor: default; }
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--muted); font-weight: 500; font-size: 12px; }
+.table-scroll { overflow-x: auto; }
+table.summary th, table.summary td { text-align: center; white-space: nowrap; padding: 8px 10px; }
+table.summary td { font-size: 18px; font-weight: 600; }
+table.summary tr.group th { color: var(--fg); font-size: 13px; font-weight: 600; border-bottom: 0; padding-bottom: 0; }
+table.summary tr:not(.group) > :is(:nth-child(4), :nth-child(7), :nth-child(10)) { border-right: 1px solid var(--line); }
+table.summary tr.group th:not(:last-child) { border-right: 1px solid var(--line); }
 tr.click { cursor: pointer; }
 tr.click:hover td { background: var(--panel); }
 td.actions { white-space: nowrap; text-align: right; }

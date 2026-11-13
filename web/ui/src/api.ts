@@ -44,7 +44,7 @@ export const api = {
     if (q.limit) p.set('limit', String(q.limit));
     return call<Task[]>('GET', '/tasks?' + p.toString());
   },
-  report: (days: number) => call<Report>('GET', '/report' + (days ? `?days=${days}` : '')),
+  stats: (days: number) => call<Report>('GET', '/stats' + (days ? `?days=${days}` : '')),
   settings: () => call<SettingsResponse>('GET', '/settings'),
   saveSettings: (s: Settings) => call<SettingsResponse>('PUT', '/settings', s),
   slackTest: () => call<null>('POST', '/slack/test'),

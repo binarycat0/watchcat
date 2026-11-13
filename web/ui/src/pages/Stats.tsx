@@ -6,17 +6,13 @@ import { Empty, Pill, Time } from '../components';
 import { ago, human } from '../format';
 import type { Stats } from '../types';
 
-function Tile({ k, v, sub }: { k: string; v: string | number; sub?: string }) {
-  return <div className="fact"><div className="k">{k}</div><div className="v big">{v}</div>{sub && <div className="muted small">{sub}</div>}</div>;
-}
-
 const durTile = (s: Stats, f: (s: Stats) => number) => (s.count ? human(f(s)) : '–');
 
 export function StatsPage() {
   const [days, setDays] = useState(30);
-  const report = useQuery({ queryKey: ['report', days], queryFn: () => api.report(days), refetchInterval: 30000 });
+  const stats = useQuery({ queryKey: ['stats', days], queryFn: () => api.stats(days), refetchInterval: 30000 });
   const navigate = useNavigate();
-  const r = report.data;
+  const r = stats.data;
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
   return (
@@ -33,17 +29,38 @@ export function StatsPage() {
           </select>
         </label>
       </div>
-      {report.isError && <Empty>{(report.error as Error).message}</Empty>}
+      {stats.isError && <Empty>{(stats.error as Error).message}</Empty>}
       {r && (<>
-        <div className="grid">
-          <Tile k="PRs watched" v={r.watched} sub={`${r.open} open · ${r.merged} merged · ${r.closed} closed`} />
-          <Tile k="Time to merge, p50" v={durTile(r.time_to_merge, (s) => s.p50)} sub={r.time_to_merge.count ? `over ${plural(r.time_to_merge.count, 'merged PR')}` : 'no merged PRs'} />
-          <Tile k="Time to merge, p95" v={durTile(r.time_to_merge, (s) => s.p95)} sub={r.time_to_merge.count ? `max ${human(r.time_to_merge.max)}` : undefined} />
-          <Tile k="CI failures per PR, p50" v={r.ci_failures.count ? r.ci_failures.p50 : '–'} sub={r.ci_failures.count ? `over ${plural(r.ci_failures.count, 'PR')}` : undefined} />
-          <Tile k="CI failures per PR, p95" v={r.ci_failures.count ? r.ci_failures.p95 : '–'} sub={r.ci_failures.count ? `max ${r.ci_failures.max}` : undefined} />
-          <Tile k="Time to CI result, p50" v={durTile(r.pipeline_time, (s) => s.p50)} sub={r.pipeline_time.count ? `over ${plural(r.pipeline_time.count, 'commit')}` : 'first job start to last job end'} />
-          <Tile k="Time to CI result, p95" v={durTile(r.pipeline_time, (s) => s.p95)} sub={r.pipeline_time.count ? `max ${human(r.pipeline_time.max)}` : undefined} />
+        <div className="table-scroll">
+          <table className="summary">
+            <thead>
+              <tr className="group">
+                <th colSpan={4}>PRs</th>
+                <th colSpan={3}>Time to merge</th>
+                <th colSpan={3}>CI failures per PR</th>
+                <th colSpan={3}>Time to CI result</th>
+              </tr>
+              <tr>
+                <th>watched</th><th>open</th><th>merged</th><th>closed</th>
+                <th>p50</th><th>p95</th><th>max</th>
+                <th>p50</th><th>p95</th><th>max</th>
+                <th>p50</th><th>p95</th><th>max</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{r.watched}</td><td>{r.open}</td><td>{r.merged}</td><td>{r.closed}</td>
+                <td>{durTile(r.time_to_merge, (s) => s.p50)}</td><td>{durTile(r.time_to_merge, (s) => s.p95)}</td><td>{durTile(r.time_to_merge, (s) => s.max)}</td>
+                <td>{r.ci_failures.count ? r.ci_failures.p50 : '–'}</td><td>{r.ci_failures.count ? r.ci_failures.p95 : '–'}</td><td>{r.ci_failures.count ? r.ci_failures.max : '–'}</td>
+                <td>{durTile(r.pipeline_time, (s) => s.p50)}</td><td>{durTile(r.pipeline_time, (s) => s.p95)}</td><td>{durTile(r.pipeline_time, (s) => s.max)}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        <p className="muted small">
+          Time to merge over {plural(r.time_to_merge.count, 'merged PR')} · CI failures over {plural(r.ci_failures.count, 'PR')} ·
+          CI result over {plural(r.pipeline_time.count, 'commit')}, first job start to last job end.
+        </p>
         {r.missing_times > 0 && <p className="muted small">{r.missing_times} merged PR(s) have no GitHub timestamps yet; they fill in on the next check.</p>}
 
         <h2>CI jobs</h2>

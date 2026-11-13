@@ -7,7 +7,7 @@ the binary at build time. Pages refresh every 5 seconds.
 - **PR detail**: GitHub state, failed and pending checks with log links, CI runs by commit, workflow rules, history and tasks.
 - **Tasks**: background tasks with status, attempts and result (including the exact prompt or command for workflow actions).
 - **Health**: the same report as `watchcat health`: setup checks (config, database, binary, symlink, `PATH`, service, daemon, masked secrets) and tool checks.
-- **Stats**: for 7/30/90 days or all time, PR counts, time to merge, CI failures per PR, time to CI result and per-job durations (p50/p95/max). Also `watchcat report [--days N]`.
+- **Stats**: for 7/30/90 days or all time, PR counts, time to merge, CI failures per PR, time to CI result and per-job durations (p50/p95/max). Also `watchcat stats [--days N]`.
 - **Config**: workflow rule modes, merge method, check interval and Slack options. Saved to `config.json` and applied immediately. Secrets are never shown or entered here.
 
 A binary built without the UI (`make build-go`) serves a page explaining how

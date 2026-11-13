@@ -20,6 +20,6 @@ requests with a non-local `Host` or a cross-site `Origin` are rejected.
 | GET | `/prs/{id}/ci-runs` | CI run history |
 | GET | `/agent/sessions` | open opencode sessions |
 | GET | `/tasks?status=&pr=&limit=` | background tasks |
-| GET | `/report?days=N` | PR lifecycle and CI stats |
+| GET | `/stats?days=N` | PR lifecycle and CI stats |
 | GET, PUT | `/settings` | live-editable settings |
 | POST | `/slack/test` | send a test message |
