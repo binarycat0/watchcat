@@ -9,18 +9,6 @@ talk to it.
 
 Documentation: https://tools.binaryc.at/watchcat
 
-## Prerequisites
-
-| What | Why | Check / install |
-|---|---|---|
-| macOS or Linux | runs as a launchd / systemd `--user` service | |
-| `gh` signed in with the `repo` scope | all GitHub access | `gh auth status` · `gh auth login` |
-| `~/.local/bin` on `PATH` | the installer links `watchcat` there | `export PATH="$HOME/.local/bin:$PATH"` |
-| Slack bot token with `chat:write` (optional) | DMs about PR changes | [Slack](doc/configuration.md#slack) |
-| opencode (optional) | agent hand-off | `opencode --version` |
-
-`watchcat doctor` checks all of this.
-
 ## Installation
 
 ```bash
@@ -30,14 +18,21 @@ watchcat service install     # launchd agent (macOS) or systemd --user unit (Lin
 watchcat service start
 ```
 
-The script downloads the latest release for your OS and CPU (macOS or Linux,
-amd64 or arm64), checks its SHA-256 checksum, installs it to
-`~/.watchcat/bin` and links it from `~/.local/bin`. No sudo. Run it again to
-upgrade; a running service is restarted. Set `WATCHCAT_VERSION=v0.1.2` to pin
-a release, or `WATCHCAT_BIN_DIR` to link somewhere other than `~/.local/bin`.
+Requires:
 
-To build from source instead, run `make install` (see Development).
-`make uninstall` removes the binary and service but keeps `~/.watchcat`.
+- macOS or Linux
+- `gh`, signed in with the `repo` scope (`gh auth login`)
+- `~/.local/bin` on `PATH`
+- optional: a Slack bot token with `chat:write` ([Slack](doc/configuration.md#slack)), `opencode`
+
+`watchcat doctor` checks all of this.
+
+The script installs the latest release to `~/.watchcat/bin` (no sudo) after
+checking its SHA-256 checksum. Run it again to upgrade. Set
+`WATCHCAT_VERSION=v0.1.2` to pin a release, or `WATCHCAT_BIN_DIR` to link
+somewhere other than `~/.local/bin`. To uninstall, run
+`watchcat service uninstall`, then delete `~/.local/bin/watchcat` and
+`~/.watchcat`.
 
 ## Usage
 
@@ -62,8 +57,10 @@ More:
 
 ## Development
 
-Building needs Go 1.26+ (`brew install go`) and Node.js 20+ with npm for the
-web UI (`brew install node`).
+Requires:
+
+- `go` 1.26+
+- `node` 20+ and `npm` (web UI)
 
 ```bash
 make install     # build UI + binary, install like install.sh does
