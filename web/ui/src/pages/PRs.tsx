@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { PRActions } from '../PRActions';
 import { api } from '../api';
-import { ActionButton, Empty, Pill, Time, useToast } from '../components';
-import { ago, isFinished, needsAttention, prRef, prStatus, prURL } from '../format';
+import { Empty, Pill, Time, useToast } from '../components';
+import { ago, needsAttention, prRef, prStatus, prURL } from '../format';
 import type { PR } from '../types';
 
 type Filter = 'all' | 'attention' | 'paused';
@@ -43,24 +44,19 @@ export function PRsPage() {
 
 function Row({ p }: { p: PR }) {
   const navigate = useNavigate();
-  const failed = p.snapshot?.failed_checks?.length ?? 0;
   return (
     <tr className="click" onClick={(e) => { if (!(e.target as HTMLElement).closest('a')) navigate(`/pr/${p.id}`); }}>
       <td>
         <a href={prURL(p)} target="_blank" rel="noopener">{prRef(p)}</a>
         <span className="title">{p.snapshot?.title}</span>
       </td>
-      <td><Pill status={prStatus(p)} /><div className="muted small">{p.summary}</div></td>
-      <td className="hide-sm"><Time ts={p.last_checked}>{ago(p.last_checked)}</Time></td>
-      <td className="actions">
-        <ActionButton fn={() => api.check(p.id)} ok="Check queued">Check</ActionButton>
-        {failed > 0 && <ActionButton fn={() => api.retrigger(p.id)} ok="Retrigger queued; see Tasks">Retrigger</ActionButton>}
-        {!isFinished(p) && (
-          <ActionButton fn={() => api.setPaused(p.id, !p.paused)} ok={p.paused ? 'Resumed' : 'Paused'}>
-            {p.paused ? 'Resume' : 'Pause'}
-          </ActionButton>
-        )}
+      <td>
+        <Pill status={prStatus(p)} />
+        {/* Closed and merged PRs have the state itself as summary; don't repeat it. */}
+        {p.summary && p.summary !== p.status && <div className="muted small">{p.summary}</div>}
       </td>
+      <td className="hide-sm"><Time ts={p.last_checked}>{ago(p.last_checked)}</Time></td>
+      <td className="actions"><PRActions p={p} variant="menu" /></td>
     </tr>
   );
 }

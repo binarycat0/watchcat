@@ -3,9 +3,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { ActionButton, Empty, Pill, Time, useToast } from '../components';
-import { ago, human, isFinished, prRef, prStatus } from '../format';
+import { ago, human, prRef, prStatus } from '../format';
 import type { AgentSession, CIRun, PRDetail, RuleInfo, Snapshot } from '../types';
 import { TaskTable } from './Tasks';
+import { PRActions } from '../PRActions';
 
 export function PRPage() {
   const id = Number(useParams().id);
@@ -32,15 +33,7 @@ export function PRPage() {
           </div>
           <div className="muted small" style={{ marginTop: 4 }}>{p.summary}</div>
         </div>
-        <div className="btns">
-          <ActionButton fn={() => api.check(id)} ok="Check queued">Check now</ActionButton>
-          {(s?.failed_checks?.length ?? 0) > 0 && <ActionButton fn={() => api.retrigger(id)} ok="Retrigger queued; see Tasks below">Retrigger failed</ActionButton>}
-          {!isFinished(p) && (
-            <ActionButton fn={() => api.setPaused(id, !p.paused)} ok={p.paused ? 'Resumed' : 'Paused'}>{p.paused ? 'Resume' : 'Pause'}</ActionButton>
-          )}
-          <ActionButton className="danger" confirm={`Stop watching ${prRef(p)}?`}
-            fn={async () => { await api.removePR(id); navigate('/'); }} ok="Removed">Remove</ActionButton>
-        </div>
+        <PRActions p={p} variant="buttons" onRemoved={() => navigate('/')} />
       </div>
 
       <h2>Agent session</h2>

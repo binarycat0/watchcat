@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export type Tone = 'ok' | 'warn' | 'err' | 'info' | 'idle';
@@ -137,6 +137,50 @@ export function PagerBar({ page, setPage, hasNext, pages, label }: PagerProps) {
       <button type="button" disabled={!hasNext} onClick={() => setPage(page + 1)}>Next</button>
       {pages !== undefined && (
         <button type="button" disabled={!hasNext} onClick={() => setPage(pages - 1)} aria-label="Last page">»</button>
+      )}
+    </div>
+  );
+}
+
+// ---- dropdown menu ----
+
+/**
+ * A button that opens a dropdown. Closes on outside click, Escape, or a click
+ * on any item. Clicks don't bubble out, so it's safe inside clickable rows.
+ */
+export function Menu({ trigger, label, className, children }: {
+  trigger: ReactNode;
+  label: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onClick = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+  return (
+    <div className="menu" ref={ref} onClick={(e) => e.stopPropagation()}>
+      <button type="button" className={className} aria-haspopup="menu" aria-expanded={open}
+        aria-label={label} title={label} onClick={() => setOpen((o) => !o)}>
+        {trigger}
+      </button>
+      {open && (
+        // Capture so the menu closes even when an item stops propagation;
+        // deferred so the item's own click handler still runs first.
+        <div className="menu-list" role="menu" onClickCapture={() => window.setTimeout(() => setOpen(false))}>{children}</div>
       )}
     </div>
   );

@@ -76,6 +76,14 @@ nav a.active { background: var(--idle-bg); font-weight: 600; }
 .menu-list a { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; border-radius: 6px; color: var(--fg); }
 .menu-list a:hover { background: var(--idle-bg); text-decoration: none; }
 .menu-list a.active { font-weight: 600; }
+.menu-list .menu-item {
+  display: block; width: 100%; text-align: left; padding: 6px 10px; border: 0; border-radius: 6px;
+  background: transparent; color: var(--fg); font-size: 13px; white-space: nowrap;
+}
+.menu-list .menu-item:hover { background: var(--idle-bg); text-decoration: none; }
+.menu-list .menu-item.danger { color: var(--err); }
+td.actions .menu { display: inline-block; text-align: left; }
+td.actions .menu-list .menu-item { margin: 0; }
 
 main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 48px; }
 h1 { font-size: 20px; margin: 0 0 4px; }

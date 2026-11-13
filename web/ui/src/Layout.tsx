@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { api } from './api';
+import { Menu } from './components';
 
 const REPO_URL = 'https://github.com/binarycat0/watchcat';
 
@@ -54,52 +55,23 @@ export function Layout() {
 function SettingsMenu() {
   // Health shells out to gh and Slack, so poll it slowly.
   const health = useQuery({ queryKey: ['health'], queryFn: () => api.health(), refetchInterval: 60000 });
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
   const { pathname } = useLocation();
   const hs = health.data?.status;
   const active = pathname === '/health' || pathname === '/config';
-
-  useEffect(() => setOpen(false), [pathname]);
-  useEffect(() => {
-    if (!open) return;
-    const onClick = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
-
   return (
-    <div className="menu" ref={ref}>
-      <button
-        type="button"
-        className={`icon-btn${active ? ' active' : ''}`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label="Settings"
-        title="Settings"
-        onClick={() => setOpen((o) => !o)}
-      >
+    <Menu
+      label="Settings"
+      className={`icon-btn${active ? ' active' : ''}`}
+      trigger={<>
         <GearIcon />
         {hs && hs !== 'ok' && <span className={`menu-dot ${hs}`} aria-hidden="true" />}
-      </button>
-      {open && (
-        <div className="menu-list" role="menu">
-          <NavLink to="/health" role="menuitem">
-            Health <span className={`badge ${hs ?? ''}`}>{hs ?? '?'}</span>
-          </NavLink>
-          <NavLink to="/config" role="menuitem">Config</NavLink>
-        </div>
-      )}
-    </div>
+      </>}
+    >
+      <NavLink to="/health" role="menuitem">
+        Health <span className={`badge ${hs ?? ''}`}>{hs ?? '?'}</span>
+      </NavLink>
+      <NavLink to="/config" role="menuitem">Config</NavLink>
+    </Menu>
   );
 }
 
