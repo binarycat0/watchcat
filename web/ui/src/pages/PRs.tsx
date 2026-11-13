@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { PRActions } from '../PRActions';
 import { api } from '../api';
 import { Empty, Pill, Time, useToast } from '../components';
-import { ago, needsAttention, prRef, prStatus, prURL } from '../format';
+import { ago, needsAttention, prRef, prURL, watchState } from '../format';
 import type { PR } from '../types';
 
 type Filter = 'all' | 'attention' | 'paused';
@@ -13,8 +13,8 @@ export function PRsPage() {
   const prs = useQuery({ queryKey: ['prs'], queryFn: api.prs });
   const [filter, setFilter] = useState<Filter>('all');
   const list = prs.data ?? [];
-  const counts = { all: list.length, attention: list.filter(needsAttention).length, paused: list.filter((p) => p.paused).length };
-  const shown = list.filter((p) => filter === 'all' || (filter === 'attention' ? needsAttention(p) : p.paused));
+  const counts = { all: list.length, attention: list.filter(needsAttention).length, paused: list.filter((p) => watchState(p) === 'paused').length };
+  const shown = list.filter((p) => filter === 'all' || (filter === 'attention' ? needsAttention(p) : watchState(p) === 'paused'));
 
   return (
     <>
@@ -32,7 +32,7 @@ export function PRsPage() {
       {prs.isError && <Empty>{(prs.error as Error).message}</Empty>}
       {prs.isSuccess && (shown.length ? (
         <table>
-          <thead><tr><th>PR</th><th>Status</th><th className="hide-sm">Checked</th><th /></tr></thead>
+          <thead><tr><th>PR</th><th>Status</th><th>Watching</th><th /></tr></thead>
           <tbody>{shown.map((p) => <Row key={p.id} p={p} />)}</tbody>
         </table>
       ) : (
@@ -51,11 +51,17 @@ function Row({ p }: { p: PR }) {
         <span className="title">{p.snapshot?.title}</span>
       </td>
       <td>
-        <Pill status={prStatus(p)} />
+        <Pill status={p.status} />
         {/* Closed and merged PRs have the state itself as summary; don't repeat it. */}
         {p.summary && p.summary !== p.status && <div className="muted small">{p.summary}</div>}
       </td>
-      <td className="hide-sm"><Time ts={p.last_checked}>{ago(p.last_checked)}</Time></td>
+      <td>
+        <Pill status={watchState(p)} />
+        <div className="muted small">
+          checked <Time ts={p.last_checked}>{ago(p.last_checked)}</Time>
+          {watchState(p) === 'watching' && <>, next <Time ts={p.next_check}>{ago(p.next_check)}</Time></>}
+        </div>
+      </td>
       <td className="actions"><PRActions p={p} variant="menu" /></td>
     </tr>
   );

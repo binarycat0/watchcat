@@ -11,6 +11,7 @@ const statusTone: Record<string, Tone> = {
   on: 'ok', 'dry-run': 'info', off: 'idle', warn: 'warn', fail: 'err', skip: 'idle',
   success: 'ok', failure: 'err', cancelled: 'err', timed_out: 'err', superseded: 'idle', skipped: 'idle', neutral: 'idle',
   open: 'info',
+  watching: 'ok', stopped: 'idle',
 };
 const statusLabel: Record<string, string> = {
   ok: 'ready', ci_running: 'CI running', ci_failed: 'CI failed', changes_requested: 'changes requested',

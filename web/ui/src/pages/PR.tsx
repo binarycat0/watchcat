@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api';
 import { ActionButton, Empty, Pill, Time, useToast } from '../components';
-import { ago, human, prRef, prStatus } from '../format';
+import { ago, human, prRef, watchState } from '../format';
 import type { AgentSession, CIRun, PRDetail, RuleInfo, Snapshot } from '../types';
 import { TaskTable } from './Tasks';
 import { PRActions } from '../PRActions';
@@ -28,8 +28,8 @@ export function PRPage() {
           <div className="muted small"><Link to="/">Pull requests</Link> /</div>
           <h1>{s?.title || prRef(p)}</h1>
           <div>
-            <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a> · <Pill status={prStatus(p)} />{' '}
-            <span className="muted small">checked {ago(p.last_checked)}{p.paused ? '' : `, next ${ago(p.next_check)}`}</span>
+            <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a> · <Pill status={p.status} /> <Pill status={watchState(p)} />{' '}
+            <span className="muted small">checked {ago(p.last_checked)}{watchState(p) === 'watching' ? `, next ${ago(p.next_check)}` : ''}</span>
           </div>
           <div className="muted small" style={{ marginTop: 4 }}>{p.summary}</div>
         </div>
