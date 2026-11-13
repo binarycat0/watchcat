@@ -98,9 +98,12 @@ func TestStoreLifecycle(t *testing.T) {
 		t.Fatalf("unexpected PR after check: %+v", got)
 	}
 
-	evs, _ := s.Events(ctx, pr.ID, 10)
+	evs, _ := s.Events(ctx, pr.ID, 10, 0)
 	if len(evs) != 2 || evs[0].Kind != "status" {
 		t.Fatalf("expected added+status events, got %+v", evs)
+	}
+	if older, _ := s.Events(ctx, pr.ID, 1, 1); len(older) != 1 || older[0].ID != evs[1].ID {
+		t.Fatalf("offset 1 should return the older event, got %+v", older)
 	}
 
 	s.SetNextCheck(ctx, pr.ID, time.Now().Add(-time.Second))
@@ -115,7 +118,7 @@ func TestStoreLifecycle(t *testing.T) {
 	if err := s.RemovePR(ctx, pr.ID); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("second remove: got %v", err)
 	}
-	if evs, _ = s.Events(ctx, pr.ID, 10); len(evs) != 0 {
+	if evs, _ = s.Events(ctx, pr.ID, 10, 0); len(evs) != 0 {
 		t.Fatal("events should cascade-delete with the PR")
 	}
 }

@@ -1,43 +1,49 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ActionButton, Empty, Pill, Time, useToast } from '../components';
+import { ActionButton, Empty, PagerBar, Pill, Tabs, Time, useServerPage, useToast } from '../components';
 import { ago, human, prRef, watchState } from '../format';
 import type { AgentSession, CIRun, PRDetail, RuleInfo, Snapshot } from '../types';
 import { TaskTable } from './Tasks';
 import { WatchActions } from '../WatchActions';
 
+type Tab = 'history' | 'tasks' | 'automations';
+
 export function PRPage() {
   const id = Number(useParams().id);
   const pr = useQuery({ queryKey: ['pr', id], queryFn: () => api.pr(id) });
-  const tasks = useQuery({ queryKey: ['tasks', 'pr', id], queryFn: () => api.tasks({ pr: id, limit: 20 }) });
   const rules = useQuery({ queryKey: ['rules', id], queryFn: () => api.rules(id) });
   const runs = useQuery({ queryKey: ['ci-runs', id], queryFn: () => api.ciRuns(id) });
+  const [params, setParams] = useSearchParams();
+  const tab = (['history', 'tasks', 'automations'].includes(params.get('tab') ?? '') ? params.get('tab') : 'history') as Tab;
   const navigate = useNavigate();
 
   if (pr.isError) return <Empty>{(pr.error as Error).message}</Empty>;
   if (!pr.data) return null;
   const p = pr.data;
   const s = p.snapshot;
+  const ws = watchState(p);
 
   return (
     <>
-      <div className="header-row">
-        <div>
-          <div className="muted small"><Link to="/">Pull requests</Link> /</div>
+      <div className="muted small"><Link to="/">Pull requests</Link> /</div>
+      <div className="pr-head">
+        <div className="pr-title">
           <h1>{s?.title || prRef(p)}</h1>
-          <div>
-            <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a> · <Pill status={watchState(p)} /> <Pill status={p.status} />{' '}
-            <span className="muted small">checked {ago(p.last_checked)}{watchState(p) === 'watching' ? `, next ${ago(p.next_check)}` : ''}</span>
-          </div>
-          <div className="muted small" style={{ marginTop: 4 }}>{p.summary}</div>
+          <Pill status={ws} />
+          <span className="muted small">
+            checked <Time ts={p.last_checked}>{ago(p.last_checked)}</Time>
+            {ws === 'watching' && <>, next <Time ts={p.next_check}>{ago(p.next_check)}</Time></>}
+          </span>
         </div>
-        <WatchActions p={p} variant="buttons" onRemoved={() => navigate('/')} />
+        <WatchActions p={p} variant="menu" onRemoved={() => navigate('/')} />
       </div>
-
-      <h2>Agent session</h2>
-      <AgentSection p={p} rules={rules.data} />
+      <div className="pr-sub">
+        <StatePill s={s} fallback={p.status} />
+        <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a>
+        {s && <CIPill ci={s.ci} />}
+      </div>
 
       <h2>Current state</h2>
       {s ? <Facts s={s} /> : <Empty>Not checked yet.</Empty>}
@@ -45,7 +51,7 @@ export function PRPage() {
       {!!s?.failed_checks?.length && (<>
         <div className="section-head">
           <h2>Failed checks</h2>
-          <ActionButton fn={() => api.retrigger(id)} ok="Retrigger queued; see Tasks below">Retrigger failed</ActionButton>
+          <ActionButton fn={() => api.retrigger(id)} ok="Retrigger queued; see the Tasks tab">Retrigger failed</ActionButton>
         </div>
         <ul className="list">{s.failed_checks.map((c) => <li key={c.name}>{c.url ? <a href={c.url} target="_blank" rel="noopener">{c.name}</a> : c.name}</li>)}</ul>
       </>)}
@@ -53,38 +59,98 @@ export function PRPage() {
         <h2>Pending checks</h2>
         <ul className="list">{s.pending_checks.map((n) => <li key={n}>{n}</li>)}</ul>
       </>)}
-
       {!!runs.data?.length && <CIRuns runs={runs.data} head={s?.head_sha} />}
-      {rules.data && <Rules rules={rules.data} />}
 
-      <h2>History</h2>
-      {p.events.length ? (
-        <ul className="list">{p.events.map((e) => (
-          <li key={e.id}>
-            <span className="when"><Time ts={e.created_at}>{ago(e.created_at)}</Time></span>
-            <span className="kind"><Pill status={e.kind === 'ci_failed' || e.kind === 'conflict' ? 'error' : 'unknown'} label={e.kind} /></span>
-            <span>{e.message}</span>
-          </li>
-        ))}</ul>
-      ) : <Empty>No history yet.</Empty>}
-
-      <h2>Tasks</h2>
-      {tasks.data && <TaskTable tasks={tasks.data} />}
+      <div className="tab-block">
+        <Tabs<Tab>
+          active={tab}
+          onChange={(t) => setParams(t === 'history' ? {} : { tab: t }, { replace: true })}
+          tabs={[
+            { key: 'history', label: 'History' },
+            { key: 'tasks', label: 'Tasks' },
+            { key: 'automations', label: <>Automations{p.agent_session ? <span className="tab-note"> · agent linked</span> : null}</> },
+          ]}
+        />
+        <div className="tab-panel" role="tabpanel">
+          {tab === 'history' && <History id={id} />}
+          {tab === 'tasks' && <PRTasks id={id} />}
+          {tab === 'automations' && (<>
+            <h3>AI agent session</h3>
+            <AgentSection p={p} rules={rules.data} />
+            {rules.data && <Rules rules={rules.data} />}
+          </>)}
+        </div>
+      </div>
     </>
   );
 }
 
+const PAGE_SIZE = 20;
+
+function History({ id }: { id: number }) {
+  const { rows, pager } = useServerPage(['events', id], (limit, offset) => api.events(id, limit, offset), PAGE_SIZE);
+  if (!rows) return null;
+  if (!rows.length) return <Empty>No history yet.</Empty>;
+  return (<>
+    <table>
+      <thead><tr><th>When</th><th>Event</th><th>Details</th></tr></thead>
+      <tbody>{rows.map((e) => (
+        <tr key={e.id}>
+          <td className="nowrap"><Time ts={e.created_at}>{ago(e.created_at)}</Time></td>
+          <td><Pill status={e.kind === 'ci_failed' || e.kind === 'conflict' ? 'error' : 'unknown'} label={e.kind} /></td>
+          <td>{e.message}</td>
+        </tr>
+      ))}</tbody>
+    </table>
+    <PagerBar {...pager} />
+  </>);
+}
+
+function PRTasks({ id }: { id: number }) {
+  const { rows, pager } = useServerPage(['tasks', 'pr', id], (limit, offset) => api.tasks({ pr: id, limit, offset }), PAGE_SIZE);
+  if (!rows) return null;
+  return (<>
+    <TaskTable tasks={rows} />
+    <PagerBar {...pager} />
+  </>);
+}
+
+/** The PR's own state on GitHub: open, draft, merged or closed. */
+function StatePill({ s, fallback }: { s?: Snapshot; fallback: string }) {
+  if (!s) return <Pill status={fallback} />;
+  if (s.state === 'OPEN') return s.draft ? <Pill status="idle" tone="idle" label="draft" /> : <Pill status="open" />;
+  return <Pill status={s.state.toLowerCase()} />;
+}
+
+function CIPill({ ci }: { ci: Snapshot['ci'] }) {
+  const map: Record<string, [string, string]> = {
+    success: ['success', 'CI passed'], failure: ['failure', 'CI failed'], pending: ['running', 'CI running'], none: ['skipped', 'no CI'],
+  };
+  const [status, label] = map[ci] ?? ['unknown', 'CI ' + ci];
+  return <Pill status={status} label={label} />;
+}
+
+/** What the title rows don't already say: review, merge readiness, commits, dates. */
 function Facts({ s }: { s: Snapshot }) {
   const review: Record<string, string> = { APPROVED: 'approved', CHANGES_REQUESTED: 'changes requested', REVIEW_REQUIRED: 'review required' };
-  const facts: [string, string][] = [
-    ['CI', s.ci + (s.pending_checks?.length ? ` · ${s.pending_checks.length} pending` : '')],
-    ['Mergeable', (s.mergeable || '').toLowerCase()],
+  const mergeable: Record<string, string> = { MERGEABLE: 'yes', CONFLICTING: 'no, merge conflict', UNKNOWN: 'unknown' };
+  const rows: [string, ReactNode][] = [
     ['Review', review[s.review_decision] || 'none'],
-    ['Unresolved threads', String(s.unresolved_threads)],
-    ['Head', (s.head_sha || '').slice(0, 7)],
-    ['State', (s.state || '').toLowerCase() + (s.draft ? ', draft' : '')],
+    ['Unresolved threads', s.unresolved_threads ? <span className="bad">{s.unresolved_threads}</span> : '0'],
+    ['Mergeable', s.mergeable === 'CONFLICTING' ? <span className="bad">{mergeable.CONFLICTING}</span> : mergeable[s.mergeable] || (s.mergeable || '–').toLowerCase()],
+    ['Pending checks', String(s.pending_checks?.length ?? 0)],
+    ['Head commit', <span className="mono">{(s.head_sha || '').slice(0, 7) || '–'}</span>],
   ];
-  return <div className="grid">{facts.map(([k, v]) => <div className="fact" key={k}><div className="k">{k}</div><div className="v">{v}</div></div>)}</div>;
+  if (s.base_ref) rows.push(['Base branch', <span className="mono">{s.base_ref}</span>]);
+  if (s.auto_merge !== undefined) rows.push(['Auto-merge', s.auto_merge ? 'on' : 'off']);
+  if (s.opened_at) rows.push(['Opened', <Time ts={s.opened_at}>{ago(s.opened_at)}</Time>]);
+  if (s.merged_at) rows.push(['Merged', <Time ts={s.merged_at}>{ago(s.merged_at)}</Time>]);
+  else if (s.closed_at) rows.push(['Closed', <Time ts={s.closed_at}>{ago(s.closed_at)}</Time>]);
+  return (
+    <table className="kv">
+      <tbody>{rows.map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody>
+    </table>
+  );
 }
 
 /** Sessions that mention this PR's repo or number first. */
@@ -139,8 +205,8 @@ function PromptButton({ id, rule, what, mode }: { id: number; rule: string; what
   return (
     <ActionButton fn={() => api.promptAgent(id, rule)}
       ok={(r) => (r as { dry_run: boolean })?.dry_run
-        ? 'Dry-run: prompt built, not sent (see Tasks below). Switch the rule to "on" in Settings to send.'
-        : 'Prompt queued; see Tasks below for the result'}>
+        ? 'Dry-run: prompt built, not sent (see the Tasks tab). Switch the rule to "on" in Config to send.'
+        : 'Prompt queued; see the Tasks tab for the result'}>
       {mode === 'on' ? `Send ${what} to agent` : `Preview ${what} prompt (${mode}, not sent)`}
     </ActionButton>
   );
@@ -176,7 +242,7 @@ function CIRuns({ runs, head }: { runs: CIRun[]; head?: string }) {
 
 function Rules({ rules }: { rules: RuleInfo[] }) {
   return (<>
-    <h2>Workflow rules</h2>
+    <h3>Workflow rules</h3>
     <table>
       <thead><tr><th>Rule</th><th>Mode</th><th>Matches now</th><th className="hide-sm">Last fired</th></tr></thead>
       <tbody>{rules.map((r) => (

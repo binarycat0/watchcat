@@ -17,6 +17,7 @@ requests with a non-local `Host` or a cross-site `Origin` are rejected.
 | PUT | `/prs/{id}/agent` | `{"session": "ses_...", "worktree": ""}`; empty session unlinks |
 | POST | `/prs/{id}/agent/prompt` | `{"prompt": "ci_failed" \| "review_threads"}` |
 | GET | `/prs/{id}/rules` | workflow rules: mode, matches now, last fired |
+| GET | `/prs/{id}/events?limit=&offset=` | PR history, newest first (paged) |
 | GET | `/prs/{id}/ci-runs` | CI run history |
 | GET | `/agent/sessions` | open opencode sessions |
 | GET | `/tasks?status=&pr=&limit=&offset=` | background tasks, newest first (`offset` skips rows for paging) |
