@@ -61,20 +61,24 @@ account `$USER` (the same convention as DAP's `~/.dap/get-secret.sh`):
 
 Lookup order is the `WATCHCAT_SLACK_TOKEN` environment variable, then the
 keychain, then a plaintext `slack.bot_token` in an old `config.json` (which
-`doctor` warns about and `secret set` migrates). `watchcat secret list`
+`watchcat health` warns about and `secret set` migrates). `watchcat secret list`
 shows where each secret comes from. On Linux without `secret-tool` and a
 running keyring, use the environment variable.
 
 ## Health checks
 
-`watchcat health` checks the tools as the daemon sees them (`--local` checks
-from your shell, `--json` prints the raw report):
+`watchcat health` runs one list of checks, shared with the API
+(`/api/v1/health`), the MCP `health` tool and the web UI's Health page. It asks
+the daemon, so you see what the service sees; if the daemon isn't running it
+runs the checks from your shell instead. `--local` always checks from your
+shell (handy when the service's environment differs, e.g. `PATH`), `--refresh`
+skips the daemon's one-minute cache, and `--json` prints the raw report. It
+exits non-zero when a required check fails.
 
-| Tool | Required | Checks |
+| Check | Required | Checks |
 |---|---|---|
+| Setup | yes | config file, database, binary and symlink, `PATH`, service, daemon, where each secret comes from (masked) |
 | gh | yes | version, signed-in hosts and scopes (`repo`), access to each watched repo |
 | Slack bot | yes | `auth.test`, scopes (`chat:write`), channel set |
 | Slack CLI | no | version, `slack auth list` |
 | opencode | no | version |
-
-`watchcat doctor` adds config, database, service and daemon checks.

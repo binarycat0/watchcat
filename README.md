@@ -38,7 +38,7 @@ watchcat service start
 - `~/.local/bin` on `PATH`
 - optional: a Slack bot token with `chat:write` ([Slack](doc/configuration.md#slack)), `opencode`
 
-`watchcat doctor` checks all of this.
+`watchcat health` checks all of this.
 
 ## Usage
 

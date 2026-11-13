@@ -12,8 +12,8 @@ export function HealthPage() {
     <>
       <div className="header-row">
         <div>
-          <h1>Tool health</h1>
-          {h && <p className="muted">As seen by the daemon, checked {ago(h.checked_at)}. Overall: <Pill status={h.status} /></p>}
+          <h1>Health</h1>
+          {h && <p className="muted">Same checks as <code>watchcat health</code>, as seen by the daemon, checked {ago(h.checked_at)}. Overall: <Pill status={h.status} /></p>}
         </div>
         <div className="btns">
           <ActionButton ok="Health re-checked"

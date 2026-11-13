@@ -1,6 +1,6 @@
-// Package health checks the external tools watchcat depends on (gh, Slack,
-// opencode) and reports their state for `watchcat health`, `doctor` and the
-// web status page.
+// Package health checks watchcat's setup and the external tools it depends on
+// (gh, Slack, opencode). The same report backs `watchcat health`, the
+// /api/v1/health endpoint, the MCP health tool and the web UI's Health page.
 package health
 
 import (

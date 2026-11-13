@@ -47,8 +47,8 @@ Usage:
   watchcat secret list              show which secrets are set and where they come from
   watchcat service install|uninstall|start|stop|restart|status
   watchcat health [--local] [--json] [--refresh]
-                                    check gh, Slack and opencode (as the daemon sees them)
-  watchcat doctor                   diagnose the setup
+                                    check the setup, daemon and tools (gh, Slack, opencode);
+                                    asks the daemon, --local checks from this shell
   watchcat version
 
 Environment:
@@ -101,7 +101,7 @@ func run(args []string) error {
 
 	cmd, rest := args[0], args[1:]
 	switch cmd {
-	case "daemon", "health", "doctor":
+	case "daemon", "health":
 		e.loadSecrets()
 	}
 	switch cmd {
@@ -129,8 +129,6 @@ func run(args []string) error {
 		return cmdSecret(e, rest)
 	case "health":
 		return cmdHealth(e, rest)
-	case "doctor":
-		return cmdDoctor(e)
 	case "version", "--version", "-v":
 		fmt.Println(version)
 		return nil

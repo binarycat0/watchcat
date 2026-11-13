@@ -6,7 +6,7 @@ requests with a non-local `Host` or a cross-site `Origin` are rejected.
 | Method | Path | |
 |---|---|---|
 | GET | `/status` | daemon info |
-| GET | `/health?refresh=1` | tool health (cached for a minute) |
+| GET | `/health?refresh=1` | setup, daemon and tool health, same report as `watchcat health` (cached for a minute) |
 | GET | `/prs` | list |
 | POST | `/prs` | `{"ref": "<PR URL> or owner/repo#123"}` |
 | GET | `/prs/{id}` | PR and history |

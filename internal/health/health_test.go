@@ -171,16 +171,21 @@ func TestSetup(t *testing.T) {
 	os.Symlink(bin, link)
 	t.Setenv("PATH", dir+"/link:/usr/bin")
 
+	cfg := dir + "/config.json"
+	os.WriteFile(cfg, []byte("{}"), 0o644)
 	svc := func() (string, string, error) { return "launchd", "loaded", nil }
-	ok := Setup{Bin: bin, Link: link, Service: svc,
+	up := func(context.Context) (string, error) { return "pid 1", nil }
+	down := func(context.Context) (string, error) { return "", errors.New("connection refused") }
+	ok := Setup{Config: cfg, DB: cfg, Bin: bin, Link: link, Service: svc, Daemon: up,
 		Secrets: []SecretStatus{{Name: "slack-token", Source: "keychain", Masked: "xoxb****abcd"}}}.Run(context.Background())
 	if ok.Status != OK || !strings.Contains(fmt.Sprint(ok.Details), "keychain xoxb****abcd") {
 		t.Fatalf("%+v", ok)
 	}
 
-	bad := Setup{Bin: bin, Link: dir + "/nope", Service: svc,
+	bad := Setup{Config: dir + "/none.json", DB: dir + "/none.db", Bin: bin, Link: dir + "/nope", Service: svc, Daemon: down,
 		Secrets: []SecretStatus{{Name: "slack-token", Source: "config.json (plaintext)", Masked: "xoxb****abcd", Hint: "watchcat secret set slack-token"}}}.Run(context.Background())
-	if bad.Status != Warn || !hasDetail(bad, "symlink", Fail) || !hasDetail(bad, "secret slack-token", Fail) {
+	if bad.Status != Warn || !hasDetail(bad, "symlink", Fail) || !hasDetail(bad, "secret slack-token", Fail) ||
+		!hasDetail(bad, "config", Fail) || !hasDetail(bad, "database", Fail) || !hasDetail(bad, "daemon", Fail) {
 		t.Fatalf("%+v", bad)
 	}
 }

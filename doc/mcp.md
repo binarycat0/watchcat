@@ -28,7 +28,7 @@ is linked to this session. Use `watchcat.pr_status` to check CI and reviews.
 | `my_prs(session_id?)` | PRs linked to the session |
 | `check_now(pr?)` | re-check now, e.g. after a push |
 | `unwatch_pr(pr?)` | unlink and pause (history kept) |
-| `health()` | daemon and tool health |
+| `health()` | setup, daemon and tool health (same report as `watchcat health`) |
 
 By default the PR is the one for the branch checked out where opencode
 started, and the session is the one working in that directory. There are

@@ -17,12 +17,19 @@ type SecretStatus struct {
 	Hint   string `json:"hint,omitempty"` // command to set it
 }
 
-// Setup checks watchcat's own installation: the binary and its symlink,
-// PATH, the background service, and where each secret comes from.
+// Setup checks watchcat's own installation: config file, database, the
+// binary and its symlink, PATH, the background service, the daemon, and where
+// each secret comes from. It is the one list of setup checks shared by
+// `watchcat health`, the API and the web UI's Health page.
 type Setup struct {
+	Config  string // ~/.watchcat/config.json
+	DB      string // ~/.watchcat/watchcat.db
 	Bin     string // ~/.watchcat/bin/watchcat
 	Link    string // ~/.local/bin/watchcat
 	Service func() (manager, status string, err error)
+	// Daemon describes the running daemon (pid, version, ...) or returns why
+	// it can't be reached. Inside the daemon it describes itself.
+	Daemon  func(ctx context.Context) (string, error)
 	Secrets []SecretStatus
 }
 
@@ -36,6 +43,20 @@ func (c Setup) Run(ctx context.Context) Result {
 		}
 	}
 
+	if c.Config != "" {
+		if _, err := os.Stat(c.Config); err != nil {
+			warn("config", c.Config+" missing (run watchcat init)", "config missing")
+		} else {
+			r.add("config", c.Config)
+		}
+	}
+	if c.DB != "" {
+		if _, err := os.Stat(c.DB); err != nil {
+			warn("database", c.DB+" not created yet; the daemon creates it on first start", "database not created yet")
+		} else {
+			r.add("database", c.DB)
+		}
+	}
 	if _, err := os.Stat(c.Bin); err != nil {
 		warn("binary", c.Bin+" missing", "not installed with make install")
 	} else {
@@ -63,6 +84,14 @@ func (c Setup) Run(ctx context.Context) Result {
 			r.add("service", name+": "+status)
 		default:
 			warn("service", name+": "+status, "service "+status)
+		}
+	}
+
+	if c.Daemon != nil {
+		if info, err := c.Daemon(ctx); err != nil {
+			warn("daemon", "not reachable: "+err.Error(), "daemon not running")
+		} else {
+			r.add("daemon", info)
 		}
 	}
 
