@@ -48,6 +48,8 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-
 }
 .brand { display: flex; align-items: center; gap: 10px; font-size: 16px; color: var(--fg); }
 .brand:hover { text-decoration: none; }
+.brand-text { display: flex; flex-direction: column; line-height: 1.15; }
+.version { font-size: 11px; font-weight: 400; color: var(--muted); }
 .logo { font-size: 20px; line-height: 1; }
 nav { display: flex; gap: 4px; }
 nav a { color: var(--fg); padding: 4px 10px; border-radius: 6px; }

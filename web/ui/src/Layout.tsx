@@ -20,7 +20,10 @@ export function Layout() {
       <header className="top">
         <Link to="/" className="brand" title="Pull requests">
           <span className="logo" aria-hidden="true">🐱</span>
-          <strong>Watchcat</strong>
+          <span className="brand-text">
+            <strong>Watchcat</strong>
+            {st && <span className="version">{/^\d/.test(st.version) ? `v${st.version}` : st.version}</span>}
+          </span>
         </Link>
         <nav>
           <NavLink to="/tasks">Tasks</NavLink>
@@ -30,7 +33,7 @@ export function Layout() {
           {status.isError
             ? 'daemon unreachable'
             : st
-              ? `v${st.version} · up ${st.uptime} · ${st.prs} PRs · ${st.running.length} running · Slack ${st.slack ? 'on' : 'off'}`
+              ? `up ${st.uptime} · ${st.prs} PRs · ${st.running.length} running · Slack ${st.slack ? 'on' : 'off'}`
               : 'connecting…'}
         </div>
         <div className="top-actions">
