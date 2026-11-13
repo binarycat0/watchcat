@@ -19,7 +19,7 @@ export function Layout() {
     <>
       <header className="top">
         <Link to="/" className="brand" title="Pull requests">
-          <span className="logo" aria-hidden="true" />
+          <span className="logo" aria-hidden="true">🐱</span>
           <strong>Watchcat</strong>
         </Link>
         <nav>
