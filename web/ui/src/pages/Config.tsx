@@ -5,7 +5,7 @@ import { api } from '../api';
 import { ActionButton, Empty, useToast } from '../components';
 import type { Settings } from '../types';
 
-export function SettingsPage() {
+export function ConfigPage() {
   // Settings change rarely; don't poll, so the form is never overwritten mid-edit.
   const data = useQuery({ queryKey: ['settings'], queryFn: api.settings, refetchInterval: false });
   const health = useQuery({ queryKey: ['health'], queryFn: () => api.health(), refetchInterval: 60000 });
@@ -16,7 +16,7 @@ export function SettingsPage() {
 
   const save = useMutation({
     mutationFn: api.saveSettings,
-    onSuccess: (r) => { setForm(r.settings); qc.setQueryData(['settings'], r); toast('Settings saved'); },
+    onSuccess: (r) => { setForm(r.settings); qc.setQueryData(['settings'], r); toast('Config saved'); },
     onError: (e: Error) => toast(e.message, true),
     onSettled: () => qc.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'settings' }),
   });
@@ -29,7 +29,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <h1>Settings</h1>
+      <h1>Config</h1>
       <p className="muted">Saved to <span className="mono">{d.config_path}</span> and applied right away; no restart needed.</p>
       <form onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
         <h2>Workflow rules</h2>
@@ -73,7 +73,7 @@ export function SettingsPage() {
           ))}
         </fieldset>
         <div className="toolbar">
-          <button className="primary" disabled={save.isPending}>Save settings</button>
+          <button className="primary" disabled={save.isPending}>Save config</button>
           <ActionButton fn={api.slackTest} ok="Test message sent">Send Slack test</ActionButton>
         </div>
       </form>
