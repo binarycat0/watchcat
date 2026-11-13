@@ -34,7 +34,7 @@ watchcat service start
 
 To upgrade, pull and run `make install` again (it restarts a running
 service). `make uninstall` removes the binary and service but keeps
-`~/.watchcat`. Coming from watchdog? See [Upgrading](doc/upgrading.md).
+`~/.watchcat`.
 
 ## Usage
 

@@ -149,23 +149,6 @@ func ctx() (context.Context, context.CancelFunc) {
 }
 
 func cmdInit(e env) error {
-	// Move data from an older location (~/.watchdog or before), but never under a
-	// running daemon: it holds the database open.
-	if old := config.LegacyDir(); old != "" && os.Getenv("WATCHCAT_HOME") == "" {
-		c, cancel := ctx()
-		_, err := e.client().Status(c)
-		cancel()
-		if err == nil {
-			return fmt.Errorf("found old data in %s; stop the daemon (`watchcat service stop`) and run init again to move it", old)
-		}
-		moved, err := config.MigrateLegacy(e.paths)
-		if err != nil {
-			return err
-		}
-		if moved != "" {
-			fmt.Printf("moved config and database from %s to %s\n", moved, e.paths.Dir)
-		}
-	}
 	created, err := config.Init(e.paths)
 	if err != nil {
 		return err

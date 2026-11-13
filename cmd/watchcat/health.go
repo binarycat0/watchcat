@@ -7,9 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/binarycat0/watchcat/internal/api"
@@ -47,31 +45,11 @@ func (e env) healthChecks(cfg config.Config, prs []core.PR) []health.Check {
 func (e env) setupCheck() health.Setup {
 	home, _ := os.UserHomeDir()
 	return health.Setup{
-		Bin:      e.paths.Bin,
-		Link:     filepath.Join(home, ".local", "bin", "watchcat"),
-		Service:  serviceStatus,
-		Secrets:  e.secretStatuses(),
-		LegacyIn: config.LegacyDir(),
-
-		OtherWatchers: otherWatchers(),
+		Bin:     e.paths.Bin,
+		Link:    filepath.Join(home, ".local", "bin", "watchcat"),
+		Service: serviceStatus,
+		Secrets: e.secretStatuses(),
 	}
-}
-
-// legacyLabel is the launchd job of the earlier Python pr-watchdog. It sends
-// prompts to opencode sessions and merges PRs on its own schedule, which
-// would look like watchcat ignoring its dry-run settings.
-const legacyLabel = "local.pr-watchdog"
-
-func otherWatchers() []string {
-	if runtime.GOOS != "darwin" {
-		return nil
-	}
-	target := fmt.Sprintf("gui/%d/%s", os.Getuid(), legacyLabel)
-	if exec.Command("launchctl", "print", target).Run() != nil {
-		return nil
-	}
-	return []string{"the Python pr-watchdog (" + legacyLabel + ") is still loaded and sends prompts / merges on its own; " +
-		"stop it with: launchctl bootout " + target}
 }
 
 func serviceStatus() (string, string, error) {
