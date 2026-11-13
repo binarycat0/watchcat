@@ -111,6 +111,8 @@ table.summary tr.group th { color: var(--fg); font-size: 13px; font-weight: 600;
 table.summary tr:not(.group) > :is(:nth-child(4), :nth-child(7), :nth-child(10)) { border-right: 1px solid var(--line); }
 table.summary tr.group th:not(:last-child) { border-right: 1px solid var(--line); }
 tr.click { cursor: pointer; }
+.pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 10px; }
+.pager > .muted { margin-right: auto; }
 tr.click:hover td { background: var(--panel); }
 td.actions { white-space: nowrap; text-align: right; }
 td.actions button + button { margin-left: 4px; }

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api';
-import { Empty, Pill, Time } from '../components';
+import { Empty, Pager, Pill, Time, usePager } from '../components';
 import { ago, human } from '../format';
 import type { Stats } from '../types';
 
@@ -13,6 +13,12 @@ export function StatsPage() {
   const stats = useQuery({ queryKey: ['stats', days], queryFn: () => api.stats(days), refetchInterval: 30000 });
   const navigate = useNavigate();
   const r = stats.data;
+  const sortedPRs = useMemo(
+    () => [...(r?.prs ?? [])].sort((a, b) => (b.merged_at || b.opened_at || '').localeCompare(a.merged_at || a.opened_at || '')),
+    [r?.prs],
+  );
+  const jobs = usePager(r?.jobs ?? [], 20, days);
+  const prs = usePager(sortedPRs, 20, days);
   const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
   return (
@@ -64,10 +70,10 @@ export function StatsPage() {
         {r.missing_times > 0 && <p className="muted small">{r.missing_times} merged PR(s) have no GitHub timestamps yet; they fill in on the next check.</p>}
 
         <h2>CI jobs</h2>
-        {r.jobs.length ? (
+        {r.jobs.length ? (<>
           <table>
             <thead><tr><th>Job</th><th>Runs</th><th>Failed</th><th>p50</th><th>p95</th><th className="hide-sm">Max</th></tr></thead>
-            <tbody>{r.jobs.map((j) => (
+            <tbody>{jobs.rows.map((j) => (
               <tr key={j.name}>
                 <td>{j.name}{j.running > 0 && <span className="muted small"> ({j.running} running)</span>}</td>
                 <td>{j.runs}</td><td>{j.failures}</td>
@@ -76,15 +82,14 @@ export function StatsPage() {
               </tr>
             ))}</tbody>
           </table>
-        ) : <Empty>No CI runs recorded in this period yet. They are collected on every check.</Empty>}
+          <Pager pager={jobs} />
+        </>) : <Empty>No CI runs recorded in this period yet. They are collected on every check.</Empty>}
 
         <h2>PRs</h2>
-        {r.prs.length ? (
+        {r.prs.length ? (<>
           <table>
             <thead><tr><th>PR</th><th>State</th><th className="hide-sm">Opened</th><th>Time to merge</th><th>CI failures</th></tr></thead>
-            <tbody>{[...r.prs]
-              .sort((a, b) => (b.merged_at || b.opened_at || '').localeCompare(a.merged_at || a.opened_at || ''))
-              .map((p) => (
+            <tbody>{prs.rows.map((p) => (
                 <tr key={p.id} className="click" onClick={(e) => { if (!(e.target as HTMLElement).closest('a')) navigate(`/pr/${p.id}`); }}>
                   <td><a href={p.url} target="_blank" rel="noopener">{p.ref}</a><span className="title">{p.title}</span></td>
                   <td><Pill status={p.state === 'open' ? 'ci_running' : p.state} label={p.state} /></td>
@@ -94,7 +99,8 @@ export function StatsPage() {
                 </tr>
               ))}</tbody>
           </table>
-        ) : <Empty>No PRs in this period.</Empty>}
+          <Pager pager={prs} />
+        </>) : <Empty>No PRs in this period.</Empty>}
       </>)}
     </>
   );

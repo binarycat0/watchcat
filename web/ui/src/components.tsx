@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export type Tone = 'ok' | 'warn' | 'err' | 'info' | 'idle';
@@ -87,5 +87,40 @@ export function ActionButton({ fn, ok, children, className, confirm: ask }: {
     >
       {children}
     </button>
+  );
+}
+
+// ---- pagination ----
+
+/**
+ * Client-side paging over an already loaded list. Goes back to the first
+ * page when resetKey changes (e.g. a new filter or period) and clamps the
+ * page when the list shrinks under it.
+ */
+export function usePager<T>(items: T[], pageSize = 20, resetKey?: unknown) {
+  const [page, setPage] = useState(0);
+  const pages = Math.max(1, Math.ceil(items.length / pageSize));
+  useEffect(() => setPage(0), [resetKey]);
+  const current = Math.min(page, pages - 1);
+  return {
+    rows: items.slice(current * pageSize, (current + 1) * pageSize),
+    page: current, pages, total: items.length, pageSize, setPage,
+  };
+}
+
+export function Pager({ pager }: { pager: ReturnType<typeof usePager<unknown>> }) {
+  const { page, pages, total, pageSize, setPage } = pager;
+  if (pages <= 1) return null;
+  const from = page * pageSize + 1;
+  const to = Math.min(total, (page + 1) * pageSize);
+  return (
+    <div className="pager">
+      <span className="muted small">{from}–{to} of {total}</span>
+      <button type="button" disabled={page === 0} onClick={() => setPage(0)} aria-label="First page">«</button>
+      <button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>Prev</button>
+      <span className="small">Page {page + 1} of {pages}</span>
+      <button type="button" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>Next</button>
+      <button type="button" disabled={page >= pages - 1} onClick={() => setPage(pages - 1)} aria-label="Last page">»</button>
+    </div>
   );
 }
