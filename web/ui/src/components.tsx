@@ -108,19 +108,36 @@ export function usePager<T>(items: T[], pageSize = 20, resetKey?: unknown) {
   };
 }
 
+type PagerProps = {
+  page: number;
+  setPage: (p: number) => void;
+  hasNext: boolean;
+  /** Known page count; enables the "last page" button. */
+  pages?: number;
+  label: string;
+};
+
+/** Pager for a list paged on the client (see usePager). */
 export function Pager({ pager }: { pager: ReturnType<typeof usePager<unknown>> }) {
   const { page, pages, total, pageSize, setPage } = pager;
   if (pages <= 1) return null;
-  const from = page * pageSize + 1;
-  const to = Math.min(total, (page + 1) * pageSize);
+  const label = `${page * pageSize + 1}–${Math.min(total, (page + 1) * pageSize)} of ${total}`;
+  return <PagerBar page={page} setPage={setPage} hasNext={page < pages - 1} pages={pages} label={label} />;
+}
+
+/** Pager controls; also used directly for lists paged by the server. */
+export function PagerBar({ page, setPage, hasNext, pages, label }: PagerProps) {
+  if (page === 0 && !hasNext) return null;
   return (
     <div className="pager">
-      <span className="muted small">{from}–{to} of {total}</span>
+      <span className="muted small">{label}</span>
       <button type="button" disabled={page === 0} onClick={() => setPage(0)} aria-label="First page">«</button>
       <button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>Prev</button>
-      <span className="small">Page {page + 1} of {pages}</span>
-      <button type="button" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>Next</button>
-      <button type="button" disabled={page >= pages - 1} onClick={() => setPage(pages - 1)} aria-label="Last page">»</button>
+      <span className="small">Page {page + 1}{pages ? ` of ${pages}` : ''}</span>
+      <button type="button" disabled={!hasNext} onClick={() => setPage(page + 1)}>Next</button>
+      {pages !== undefined && (
+        <button type="button" disabled={!hasNext} onClick={() => setPage(pages - 1)} aria-label="Last page">»</button>
+      )}
     </div>
   );
 }

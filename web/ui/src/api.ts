@@ -37,11 +37,12 @@ export const api = {
   promptAgent: (id: number, prompt: string) =>
     call<{ dry_run: boolean }>('POST', `/prs/${id}/agent/prompt`, { prompt }),
   agentSessions: () => call<AgentSession[]>('GET', '/agent/sessions'),
-  tasks: (q: { status?: string; pr?: number; limit?: number }) => {
+  tasks: (q: { status?: string; pr?: number; limit?: number; offset?: number }) => {
     const p = new URLSearchParams();
     if (q.status) p.set('status', q.status);
     if (q.pr) p.set('pr', String(q.pr));
     if (q.limit) p.set('limit', String(q.limit));
+    if (q.offset) p.set('offset', String(q.offset));
     return call<Task[]>('GET', '/tasks?' + p.toString());
   },
   stats: (days: number) => call<Report>('GET', '/stats' + (days ? `?days=${days}` : '')),

@@ -324,6 +324,7 @@ func (s *Server) Handler(pid int) http.Handler {
 		f := core.TaskFilter{Status: q.Get("status")}
 		f.PRID, _ = strconv.ParseInt(q.Get("pr"), 10, 64)
 		f.Limit, _ = strconv.Atoi(q.Get("limit"))
+		f.Offset, _ = strconv.Atoi(q.Get("offset"))
 		tasks, err := s.Store.ListTasks(r.Context(), f)
 		if err != nil {
 			writeErr(w, err)

@@ -163,6 +163,7 @@ type TaskFilter struct {
 	Status string
 	PRID   int64
 	Limit  int
+	Offset int // rows to skip, for paging
 }
 
 // ListTasks returns tasks, newest first.
@@ -184,8 +185,11 @@ func (s *Store) ListTasks(ctx context.Context, f TaskFilter) ([]Task, error) {
 	if f.Limit <= 0 {
 		f.Limit = 50
 	}
-	q += ` ORDER BY id DESC LIMIT ?`
-	args = append(args, f.Limit)
+	if f.Offset < 0 {
+		f.Offset = 0
+	}
+	q += ` ORDER BY id DESC LIMIT ? OFFSET ?`
+	args = append(args, f.Limit, f.Offset)
 
 	rows, err := s.db.QueryContext(ctx, q, args...)
 	if err != nil {

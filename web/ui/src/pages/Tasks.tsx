@@ -2,13 +2,23 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api } from '../api';
-import { Empty, Pill, Time } from '../components';
+import { Empty, PagerBar, Pill, Time } from '../components';
 import { ago, prRef } from '../format';
 import type { PR, Task } from '../types';
 
+const PAGE_SIZE = 20;
+
 export function TasksPage() {
   const [status, setStatus] = useState('');
-  const tasks = useQuery({ queryKey: ['tasks', status], queryFn: () => api.tasks({ status, limit: 100 }) });
+  const [page, setPage] = useState(0);
+  // Paged on the server: ask for one extra row to know if there's a next page.
+  const tasks = useQuery({
+    queryKey: ['tasks', status, page],
+    queryFn: () => api.tasks({ status, limit: PAGE_SIZE + 1, offset: page * PAGE_SIZE }),
+    placeholderData: (prev) => prev,
+  });
+  const rows = tasks.data?.slice(0, PAGE_SIZE);
+  const hasNext = (tasks.data?.length ?? 0) > PAGE_SIZE;
   const prs = useQuery({ queryKey: ['prs'], queryFn: api.prs });
   return (
     <>
@@ -16,12 +26,16 @@ export function TasksPage() {
       <p className="muted">Background work run by the daemon's workers: PR checks, Slack messages, retriggers, merges and agent prompts. Failed tasks retry with backoff.</p>
       <div className="toolbar">
         <label className="muted small">Status{' '}
-          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+          <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(0); }}>
             {['', 'queued', 'running', 'done', 'failed'].map((s) => <option key={s} value={s}>{s || 'all'}</option>)}
           </select>
         </label>
       </div>
-      {tasks.data && <TaskTable tasks={tasks.data} prs={prs.data} />}
+      {rows && <TaskTable tasks={rows} prs={prs.data} />}
+      {rows && (
+        <PagerBar page={page} setPage={setPage} hasNext={hasNext}
+          label={rows.length ? `${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + rows.length}` : ''} />
+      )}
     </>
   );
 }
