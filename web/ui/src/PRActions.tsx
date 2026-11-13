@@ -1,6 +1,6 @@
 import { api } from './api';
 import { ActionButton, Menu } from './components';
-import { isFinished, prRef, prURL } from './format';
+import { isFinished, prRef } from './format';
 import type { PR } from './types';
 
 /**
@@ -25,7 +25,6 @@ export function PRActions({ p, variant, onRemoved }: {
           {p.paused ? 'Resume' : 'Pause'}
         </ActionButton>
       )}
-      {variant === 'menu' && <a className={item} href={prURL(p)} target="_blank" rel="noopener" role="menuitem">Open on GitHub</a>}
       <ActionButton className={`danger${item ? ' ' + item : ''}`} confirm={`Stop watching ${prRef(p)}?`}
         fn={async () => { await api.removePR(p.id); onRemoved?.(); }} ok="Removed">Remove</ActionButton>
     </>
