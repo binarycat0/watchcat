@@ -1,0 +1,55 @@
+site_name: watchcat
+site_description: A personal daemon that watches your pull requests, notifies Slack, and hands work to opencode.
+site_url: https://binarycat0.github.io/watchcat/
+repo_url: https://github.com/binarycat0/watchcat
+repo_name: binarycat0/watchcat
+edit_uri: edit/main/doc/
+docs_dir: doc
+
+theme:
+  name: material
+  features:
+    - content.action.edit
+    - content.code.copy
+    - navigation.footer
+    - navigation.top
+    - search.highlight
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Configuration: configuration.md
+  - Workflows: workflows.md
+  - MCP server: mcp.md
+  - Web UI: web-ui.md
+  - HTTP API: api.md
+  - How it works: architecture.md
+  - Upgrading from watchdog: upgrading.md

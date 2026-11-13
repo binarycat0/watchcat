@@ -7,6 +7,8 @@ notifies Slack, and hands work to the opencode session that owns each PR.
 web UI) in one process kept alive by launchd or systemd. The other commands
 talk to it.
 
+Documentation: https://binarycat0.github.io/watchcat
+
 ## Prerequisites
 
 | What | Why | Check / install |
