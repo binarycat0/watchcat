@@ -10,6 +10,25 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     base: './',
     build: { outDir: '../dist/app', emptyOutDir: true },
-    server: { proxy: { '/api': api } },
+    server: {
+      proxy: {
+        '/api': {
+          target: api,
+          changeOrigin: true,
+          // The daemon rejects writes whose Origin differs from its Host.
+          // Requests from this dev page carry the dev server's origin, so
+          // present them as same-origin. Other origins pass through as-is
+          // and are still rejected.
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq, req) => {
+              const origin = req.headers.origin;
+              if (origin && new URL(origin).host === req.headers.host) {
+                proxyReq.setHeader('origin', new URL(api).origin);
+              }
+            });
+          },
+        },
+      },
+    },
   };
 });
