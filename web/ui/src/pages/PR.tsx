@@ -194,6 +194,6 @@ function Rules({ rules }: { rules: RuleInfo[] }) {
         </tr>
       ))}</tbody>
     </table>
-    <p className="muted small">A rule fires once per PR state (new commit, new failures or threads). Change modes on the <Link to="/settings">Settings</Link> page.</p>
+    <p className="muted small">A rule fires once per PR state (new commit, new failures or threads). Change modes on the <Link to="/config">Config</Link> page.</p>
   </>);
 }

@@ -9,7 +9,7 @@ import { PRPage } from './pages/PR';
 import { TasksPage } from './pages/Tasks';
 import { ReportPage } from './pages/Report';
 import { HealthPage } from './pages/Health';
-import { SettingsPage } from './pages/Settings';
+import { ConfigPage } from './pages/Config';
 import './styles.css';
 
 // React Query polls every 5s while the tab is visible and keeps showing the
@@ -30,7 +30,7 @@ createRoot(document.getElementById('root')!).render(
               <Route path="tasks" element={<TasksPage />} />
               <Route path="report" element={<ReportPage />} />
               <Route path="health" element={<HealthPage />} />
-              <Route path="settings" element={<SettingsPage />} />
+              <Route path="config" element={<ConfigPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

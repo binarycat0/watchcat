@@ -8,7 +8,7 @@ the binary at build time. Pages refresh every 5 seconds.
 - **Tasks**: background tasks with status, attempts and result (including the exact prompt or command for workflow actions).
 - **Health**: setup checks (binary, symlink, `PATH`, service, masked secrets) and tool checks.
 - **Report**: for 7/30/90 days or all time, PR counts, time to merge, CI failures per PR, time to CI result and per-job durations (p50/p95/max). Also `watchcat report [--days N]`.
-- **Settings**: workflow rule modes, merge method, check interval and Slack options. Saved to `config.json` and applied immediately. Secrets are never shown or entered here.
+- **Config**: workflow rule modes, merge method, check interval and Slack options. Saved to `config.json` and applied immediately. Secrets are never shown or entered here.
 
 A binary built without the UI (`make build-go`) serves a page explaining how
 to build it.
