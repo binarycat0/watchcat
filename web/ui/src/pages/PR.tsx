@@ -147,9 +147,12 @@ function Facts({ s }: { s: Snapshot }) {
   if (s.merged_at) rows.push(['Merged', <Time ts={s.merged_at}>{ago(s.merged_at)}</Time>]);
   else if (s.closed_at) rows.push(['Closed', <Time ts={s.closed_at}>{ago(s.closed_at)}</Time>]);
   return (
-    <table className="kv">
-      <tbody>{rows.map(([k, v]) => <tr key={k}><th scope="row">{k}</th><td>{v}</td></tr>)}</tbody>
-    </table>
+    <div className="table-scroll">
+      <table className="state-row">
+        <thead><tr>{rows.map(([k]) => <th key={k}>{k}</th>)}</tr></thead>
+        <tbody><tr>{rows.map(([k, v]) => <td key={k}>{v}</td>)}</tr></tbody>
+      </table>
+    </div>
   );
 }
 

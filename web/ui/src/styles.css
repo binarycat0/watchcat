@@ -186,9 +186,8 @@ label.check input { flex: none; }
 .pr-title { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
 .pr-title h1 { margin: 0; }
 .pr-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
-table.kv { width: auto; min-width: min(480px, 100%); }
-table.kv th { font-size: 13px; font-weight: 500; color: var(--muted); padding-right: 32px; white-space: nowrap; }
-table.kv th, table.kv td { padding: 7px 8px; }
+table.state-row th, table.state-row td { white-space: nowrap; padding: 8px 12px; }
+table.state-row td { font-weight: 600; }
 td.nowrap { white-space: nowrap; }
 h3 { font-size: 14px; margin: 16px 0 8px; }
 .tab-block { margin-top: 28px; }
