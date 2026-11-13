@@ -38,3 +38,6 @@ node_modules/
 
 # TypeScript incremental build cache (rewritten by `make ui`)
 *.tsbuildinfo
+
+# MkDocs build output
+/site/
