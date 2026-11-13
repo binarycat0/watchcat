@@ -7,17 +7,15 @@ notifies Slack, and hands work to the opencode session that owns each PR.
 web UI) in one process kept alive by launchd or systemd. The other commands
 talk to it.
 
-Documentation: https://binarycat0.github.io/watchcat
+Documentation: https://tools.binaryc.at/watchcat
 
 ## Prerequisites
 
 | What | Why | Check / install |
 |---|---|---|
 | macOS or Linux | runs as a launchd / systemd `--user` service | |
-| Go 1.26+ | build | `go version` · `brew install go` |
-| Node.js 20+ and npm | build the web UI (not needed at runtime) | `node --version` · `brew install node` |
 | `gh` signed in with the `repo` scope | all GitHub access | `gh auth status` · `gh auth login` |
-| `~/.local/bin` on `PATH` | `make install` links `watchcat` there | `export PATH="$HOME/.local/bin:$PATH"` |
+| `~/.local/bin` on `PATH` | the installer links `watchcat` there | `export PATH="$HOME/.local/bin:$PATH"` |
 | Slack bot token with `chat:write` (optional) | DMs about PR changes | [Slack](doc/configuration.md#slack) |
 | opencode (optional) | agent hand-off | `opencode --version` |
 
@@ -26,15 +24,20 @@ Documentation: https://binarycat0.github.io/watchcat
 ## Installation
 
 ```bash
-make install                 # UI + binary into ~/.watchcat/bin, linked from ~/.local/bin
+curl -fsSL https://tools.binaryc.at/watchcat/install.sh | sh
 watchcat init                # writes ~/.watchcat/config.json
 watchcat service install     # launchd agent (macOS) or systemd --user unit (Linux)
 watchcat service start
 ```
 
-To upgrade, pull and run `make install` again (it restarts a running
-service). `make uninstall` removes the binary and service but keeps
-`~/.watchcat`.
+The script downloads the latest release for your OS and CPU (macOS or Linux,
+amd64 or arm64), checks its SHA-256 checksum, installs it to
+`~/.watchcat/bin` and links it from `~/.local/bin`. No sudo. Run it again to
+upgrade; a running service is restarted. Set `WATCHCAT_VERSION=v0.1.2` to pin
+a release, or `WATCHCAT_BIN_DIR` to link somewhere other than `~/.local/bin`.
+
+To build from source instead, run `make install` (see Development).
+`make uninstall` removes the binary and service but keeps `~/.watchcat`.
 
 ## Usage
 
@@ -59,7 +62,11 @@ More:
 
 ## Development
 
+Building needs Go 1.26+ (`brew install go`) and Node.js 20+ with npm for the
+web UI (`brew install node`).
+
 ```bash
+make install     # build UI + binary, install like install.sh does
 make test        # go vet, go test -race, UI typecheck
 make build       # UI + bin/watchcat
 make build-go    # binary only, no Node needed
