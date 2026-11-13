@@ -33,7 +33,7 @@ export function Layout() {
           {status.isError
             ? 'daemon unreachable'
             : st
-              ? `up ${st.uptime} · ${st.prs} PRs · ${st.running.length} running · Slack ${st.slack ? 'on' : 'off'}`
+              ? `up ${st.uptime} · ${st.running.length} running`
               : 'connecting…'}
         </div>
         <div className="top-actions">
