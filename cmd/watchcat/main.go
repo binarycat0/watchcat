@@ -141,7 +141,7 @@ func run(args []string) error {
 	return fmt.Errorf("unknown command %q (see `watchcat help`)", cmd)
 }
 
-func (e env) client() *api.Client { return api.NewClient(e.cfg.Listen) }
+func (e env) client() *api.Client { return api.NewClient(e.cfg.Addr()) }
 
 // ctx gives each CLI call a deadline so a hung daemon can't hang the shell.
 func ctx() (context.Context, context.CancelFunc) {

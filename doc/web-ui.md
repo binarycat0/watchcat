@@ -1,6 +1,6 @@
 # Web UI
 
-http://127.0.0.1:7878. A React + TypeScript app in `web/ui/`, embedded into
+http://127.0.0.1:7878 (see `host`/`port` in [Configuration](configuration.md)). A React + TypeScript app in `web/ui/`, embedded into
 the binary at build time. Pages refresh every 5 seconds.
 
 - **Pull requests**: status per PR, "needs attention" and paused filters, add, check, retrigger, pause.

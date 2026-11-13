@@ -1,6 +1,6 @@
 # HTTP API
 
-Served under `http://127.0.0.1:7878/api/v1`. Loopback only, no auth;
+Served under `http://127.0.0.1:7878/api/v1` (`host`/`port` in config.json). Loopback only, no auth;
 requests with a non-local `Host` or a cross-site `Origin` are rejected.
 
 | Method | Path | |

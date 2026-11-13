@@ -8,7 +8,7 @@ import (
 
 func TestRemovePlaintextToken(t *testing.T) {
 	p := PathsIn(t.TempDir())
-	os.WriteFile(p.Config, []byte(`{"listen":"127.0.0.1:1","custom":1,"slack":{"bot_token":"xoxb-x","user_id":"U1"}}`), 0o600)
+	os.WriteFile(p.Config, []byte(`{"port":1,"custom":1,"slack":{"bot_token":"xoxb-x","user_id":"U1"}}`), 0o600)
 
 	removed, err := RemovePlaintextToken(p)
 	if err != nil || !removed {
@@ -93,5 +93,18 @@ func TestDurationString(t *testing.T) {
 		if d.String() != want {
 			t.Errorf("%s -> %s, want %s", in, d.String(), want)
 		}
+	}
+}
+
+func TestLoadHostPort(t *testing.T) {
+	p := PathsIn(t.TempDir())
+	os.WriteFile(p.Config, []byte(`{"port":9000}`), 0o600)
+	cfg, err := Load(p)
+	if err != nil || cfg.Addr() != "127.0.0.1:9000" {
+		t.Fatalf("addr=%q err=%v", cfg.Addr(), err)
+	}
+	os.WriteFile(p.Config, []byte(`{"port":70000}`), 0o600)
+	if _, err := Load(p); err == nil {
+		t.Fatal("out-of-range port should fail")
 	}
 }

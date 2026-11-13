@@ -43,7 +43,7 @@ func cmdService(e env, args []string) error {
 		if err := m.Start(); err != nil {
 			return err
 		}
-		fmt.Printf("started; web UI at http://%s\n", e.cfg.Listen)
+		fmt.Printf("started; web UI at http://%s\n", e.cfg.Addr())
 		return nil
 	case "restart":
 		if err := m.Restart(); err != nil {
