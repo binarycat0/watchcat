@@ -7,7 +7,7 @@ WATCHCAT_HOME ?= $(HOME)/.watchcat
 BINDIR := $(WATCHCAT_HOME)/bin
 LINKDIR ?= $(HOME)/.local/bin
 
-.PHONY: ui build build-go test install uninstall clean
+.PHONY: ui build build-go test install uninstall clean docs-image docs docs-serve
 
 # Build the React UI into web/dist/app (needs Node.js + npm).
 ui:
@@ -53,4 +53,19 @@ uninstall:
 	@echo "kept $(WATCHCAT_HOME) (config, database); delete it yourself if you want"
 
 clean:
-	rm -rf bin web/dist/app
+	rm -rf bin web/dist/app site
+
+# Docs site (MkDocs Material in Docker, see utils/mkdocs).
+DOCS_IMAGE ?= watchcat-docs
+DOCS_RUN = docker run --rm --user $(shell id -u):$(shell id -g) -v "$(CURDIR)":/docs
+
+docs-image:
+	docker build -q -t $(DOCS_IMAGE) utils/mkdocs >/dev/null
+
+# Builds site/.
+docs: docs-image
+	$(DOCS_RUN) $(DOCS_IMAGE) build --strict
+
+# http://127.0.0.1:8000; restart to pick up README.md changes.
+docs-serve: docs-image
+	$(DOCS_RUN) -it -p 8000:8000 $(DOCS_IMAGE) serve -a 0.0.0.0:8000
