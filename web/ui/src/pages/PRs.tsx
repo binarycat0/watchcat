@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { PRActions } from '../PRActions';
+import { WatchActions } from '../WatchActions';
 import { api } from '../api';
 import { Empty, Pill, Time, useToast } from '../components';
 import { ago, needsAttention, prRef, prURL, watchState } from '../format';
@@ -32,7 +32,7 @@ export function PRsPage() {
       {prs.isError && <Empty>{(prs.error as Error).message}</Empty>}
       {prs.isSuccess && (shown.length ? (
         <table>
-          <thead><tr><th>PR</th><th>Status</th><th>Watching</th><th /></tr></thead>
+          <thead><tr><th>PR</th><th>Watching</th><th>Status</th><th className="actions">Actions</th></tr></thead>
           <tbody>{shown.map((p) => <Row key={p.id} p={p} />)}</tbody>
         </table>
       ) : (
@@ -51,18 +51,18 @@ function Row({ p }: { p: PR }) {
         <span className="title">{p.snapshot?.title}</span>
       </td>
       <td>
-        <Pill status={p.status} />
-        {/* Closed and merged PRs have the state itself as summary; don't repeat it. */}
-        {p.summary && p.summary !== p.status && <div className="muted small">{p.summary}</div>}
-      </td>
-      <td>
         <Pill status={watchState(p)} />
         <div className="muted small">
           checked <Time ts={p.last_checked}>{ago(p.last_checked)}</Time>
           {watchState(p) === 'watching' && <>, next <Time ts={p.next_check}>{ago(p.next_check)}</Time></>}
         </div>
       </td>
-      <td className="actions"><PRActions p={p} variant="menu" /></td>
+      <td>
+        <Pill status={p.status} />
+        {/* Closed and merged PRs have the state itself as summary; don't repeat it. */}
+        {p.summary && p.summary !== p.status && <div className="muted small">{p.summary}</div>}
+      </td>
+      <td className="actions"><WatchActions p={p} variant="menu" /></td>
     </tr>
   );
 }

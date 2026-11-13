@@ -4,22 +4,20 @@ import { isFinished, prRef } from './format';
 import type { PR } from './types';
 
 /**
- * The actions on a watched PR, shared by the PR page (a row of buttons) and
- * the PR list (an Actions dropdown per row), so both always offer the same set.
+ * Watching actions (what watchcat does with the PR: check, pause, stop
+ * watching), shared by the PR page (a row of buttons) and the PR list (a
+ * dropdown per row) so both offer the same set. Actions on the PR itself,
+ * like re-running failed CI, live with their section on the PR page.
  */
-export function PRActions({ p, variant, onRemoved }: {
+export function WatchActions({ p, variant, onRemoved }: {
   p: PR;
   variant: 'buttons' | 'menu';
   onRemoved?: () => void;
 }) {
-  const failed = (p.snapshot?.failed_checks?.length ?? 0) > 0;
   const item = variant === 'menu' ? 'menu-item' : undefined;
   const actions = (
     <>
       <ActionButton className={item} fn={() => api.check(p.id)} ok="Check queued">Check now</ActionButton>
-      {failed && (
-        <ActionButton className={item} fn={() => api.retrigger(p.id)} ok="Retrigger queued; see Tasks">Retrigger failed</ActionButton>
-      )}
       {!isFinished(p) && (
         <ActionButton className={item} fn={() => api.setPaused(p.id, !p.paused)} ok={p.paused ? 'Resumed' : 'Paused'}>
           {p.paused ? 'Resume' : 'Pause'}
@@ -31,7 +29,7 @@ export function PRActions({ p, variant, onRemoved }: {
   );
   if (variant === 'buttons') return <div className="btns">{actions}</div>;
   return (
-    <Menu label={`Actions for ${prRef(p)}`} className="menu-trigger" trigger={<>Actions <span aria-hidden="true">▾</span></>}>
+    <Menu label={`Watching actions for ${prRef(p)}`} className="menu-trigger" trigger={<>Watching <span aria-hidden="true">▾</span></>}>
       {actions}
     </Menu>
   );

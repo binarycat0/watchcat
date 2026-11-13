@@ -123,7 +123,7 @@ tr.click { cursor: pointer; }
 .pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 10px; }
 .pager > .muted { margin-right: auto; }
 tr.click:hover td { background: var(--panel); }
-td.actions { white-space: nowrap; text-align: right; }
+td.actions, th.actions { white-space: nowrap; text-align: right; }
 td.actions button + button { margin-left: 4px; }
 .title { display: block; color: var(--muted); font-size: 13px; max-width: 420px; }
 details summary { cursor: pointer; color: var(--accent); }
@@ -182,6 +182,8 @@ label.check input { flex: none; }
 .list .kind { min-width: 130px; }
 
 .header-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 8px; }
+.section-head h2 { margin: 0; }
 .header-row .btns { display: flex; gap: 6px; flex-wrap: wrap; }
 
 #toast {

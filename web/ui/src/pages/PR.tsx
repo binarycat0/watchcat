@@ -6,7 +6,7 @@ import { ActionButton, Empty, Pill, Time, useToast } from '../components';
 import { ago, human, prRef, watchState } from '../format';
 import type { AgentSession, CIRun, PRDetail, RuleInfo, Snapshot } from '../types';
 import { TaskTable } from './Tasks';
-import { PRActions } from '../PRActions';
+import { WatchActions } from '../WatchActions';
 
 export function PRPage() {
   const id = Number(useParams().id);
@@ -28,12 +28,12 @@ export function PRPage() {
           <div className="muted small"><Link to="/">Pull requests</Link> /</div>
           <h1>{s?.title || prRef(p)}</h1>
           <div>
-            <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a> · <Pill status={p.status} /> <Pill status={watchState(p)} />{' '}
+            <a href={p.url} target="_blank" rel="noopener">{prRef(p)}</a> · <Pill status={watchState(p)} /> <Pill status={p.status} />{' '}
             <span className="muted small">checked {ago(p.last_checked)}{watchState(p) === 'watching' ? `, next ${ago(p.next_check)}` : ''}</span>
           </div>
           <div className="muted small" style={{ marginTop: 4 }}>{p.summary}</div>
         </div>
-        <PRActions p={p} variant="buttons" onRemoved={() => navigate('/')} />
+        <WatchActions p={p} variant="buttons" onRemoved={() => navigate('/')} />
       </div>
 
       <h2>Agent session</h2>
@@ -43,7 +43,10 @@ export function PRPage() {
       {s ? <Facts s={s} /> : <Empty>Not checked yet.</Empty>}
 
       {!!s?.failed_checks?.length && (<>
-        <h2>Failed checks</h2>
+        <div className="section-head">
+          <h2>Failed checks</h2>
+          <ActionButton fn={() => api.retrigger(id)} ok="Retrigger queued; see Tasks below">Retrigger failed</ActionButton>
+        </div>
         <ul className="list">{s.failed_checks.map((c) => <li key={c.name}>{c.url ? <a href={c.url} target="_blank" rel="noopener">{c.name}</a> : c.name}</li>)}</ul>
       </>)}
       {!!s?.pending_checks?.length && (<>
