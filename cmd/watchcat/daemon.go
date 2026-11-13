@@ -136,9 +136,9 @@ func cmdDaemon(e env, args []string) error {
 	// Run the worker pool and HTTP server concurrently; done channels report
 	// when each has finished.
 	if n, err := worker.BackfillLifecycle(ctx, store); err != nil {
-		log.Warn("report backfill", "err", err)
+		log.Warn("stats backfill", "err", err)
 	} else if n > 0 {
-		log.Info("re-checking PRs to fill in report timestamps", "count", n)
+		log.Info("re-checking PRs to fill in stats timestamps", "count", n)
 	}
 	poolDone := make(chan struct{})
 	go func() {

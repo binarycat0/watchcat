@@ -117,3 +117,22 @@ func TestTaskQueue(t *testing.T) {
 		t.Fatalf("requeued %d", n)
 	}
 }
+
+func TestListTasksPaging(t *testing.T) {
+	s := openTest(t)
+	ctx := context.Background()
+	for i := 0; i < 5; i++ {
+		if _, err := s.EnqueueTask(ctx, NewTask{Kind: "k"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	first, _ := s.ListTasks(ctx, TaskFilter{Limit: 2})
+	second, _ := s.ListTasks(ctx, TaskFilter{Limit: 2, Offset: 2})
+	last, _ := s.ListTasks(ctx, TaskFilter{Limit: 2, Offset: 4})
+	if len(first) != 2 || len(second) != 2 || len(last) != 1 {
+		t.Fatalf("page sizes: %d %d %d", len(first), len(second), len(last))
+	}
+	if first[1].ID <= second[0].ID || second[1].ID <= last[0].ID {
+		t.Fatalf("pages should continue newest first: %d %d %d %d", first[1].ID, second[0].ID, second[1].ID, last[0].ID)
+	}
+}

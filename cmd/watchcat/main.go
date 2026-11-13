@@ -34,7 +34,7 @@ Usage:
   watchcat pr retrigger <id|ref>    re-run failed CI jobs
   watchcat pr bind <id|ref> --session ses_... [--worktree /path]
                                     link a PR to the opencode session working on it (unbind to remove)
-  watchcat report [--days N]        PR lifecycle stats: counts, time to merge, CI failures (p50/p95)
+  watchcat stats [--days N]         PR lifecycle stats: counts, time to merge, CI failures (p50/p95)
   watchcat mcp                      MCP server on stdio for AI agents (add to opencode's config)
   watchcat agent sessions           list open opencode sessions and their worktrees
   watchcat pr prompt-ci|prompt-review <id|ref>
@@ -121,8 +121,8 @@ func run(args []string) error {
 		return cmdService(e, rest)
 	case "mcp":
 		return cmdMCP(e, rest)
-	case "report":
-		return cmdReport(e, rest)
+	case "stats":
+		return cmdStats(e, rest)
 	case "agent":
 		return cmdAgent(e, rest)
 	case "secret":

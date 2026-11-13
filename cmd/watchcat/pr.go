@@ -279,16 +279,16 @@ func ago(t *time.Time) string {
 	return time.Since(*t).Round(time.Second).String() + " ago"
 }
 
-// cmdReport prints PR lifecycle stats.
-func cmdReport(e env, args []string) error {
-	fs := flag.NewFlagSet("report", flag.ContinueOnError)
+// cmdStats prints PR lifecycle stats.
+func cmdStats(e env, args []string) error {
+	fs := flag.NewFlagSet("stats", flag.ContinueOnError)
 	days := fs.Int("days", 0, "only PRs open at some point in the last N days (0 = all time)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
 	c, cancel := ctx()
 	defer cancel()
-	r, err := e.client().Report(c, *days)
+	r, err := e.client().Stats(c, *days)
 	if err != nil {
 		return err
 	}

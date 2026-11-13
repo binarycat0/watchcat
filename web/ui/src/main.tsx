@@ -7,7 +7,7 @@ import { Layout } from './Layout';
 import { PRsPage } from './pages/PRs';
 import { PRPage } from './pages/PR';
 import { TasksPage } from './pages/Tasks';
-import { ReportPage } from './pages/Report';
+import { StatsPage } from './pages/Stats';
 import { HealthPage } from './pages/Health';
 import { ConfigPage } from './pages/Config';
 import './styles.css';
@@ -28,7 +28,7 @@ createRoot(document.getElementById('root')!).render(
               <Route index element={<PRsPage />} />
               <Route path="pr/:id" element={<PRPage />} />
               <Route path="tasks" element={<TasksPage />} />
-              <Route path="report" element={<ReportPage />} />
+              <Route path="stats" element={<StatsPage />} />
               <Route path="health" element={<HealthPage />} />
               <Route path="config" element={<ConfigPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />

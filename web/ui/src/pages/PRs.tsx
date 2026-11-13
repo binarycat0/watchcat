@@ -18,7 +18,7 @@ export function PRsPage() {
   return (
     <>
       <h1>Pull requests</h1>
-      <div className="toolbar">
+      <div className="toolbar stacked">
         <AddForm />
         <div className="chips">
           {(['all', 'attention', 'paused'] as Filter[]).map((f) => (

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 export type Tone = 'ok' | 'warn' | 'err' | 'info' | 'idle';
@@ -87,5 +87,57 @@ export function ActionButton({ fn, ok, children, className, confirm: ask }: {
     >
       {children}
     </button>
+  );
+}
+
+// ---- pagination ----
+
+/**
+ * Client-side paging over an already loaded list. Goes back to the first
+ * page when resetKey changes (e.g. a new filter or period) and clamps the
+ * page when the list shrinks under it.
+ */
+export function usePager<T>(items: T[], pageSize = 20, resetKey?: unknown) {
+  const [page, setPage] = useState(0);
+  const pages = Math.max(1, Math.ceil(items.length / pageSize));
+  useEffect(() => setPage(0), [resetKey]);
+  const current = Math.min(page, pages - 1);
+  return {
+    rows: items.slice(current * pageSize, (current + 1) * pageSize),
+    page: current, pages, total: items.length, pageSize, setPage,
+  };
+}
+
+type PagerProps = {
+  page: number;
+  setPage: (p: number) => void;
+  hasNext: boolean;
+  /** Known page count; enables the "last page" button. */
+  pages?: number;
+  label: string;
+};
+
+/** Pager for a list paged on the client (see usePager). */
+export function Pager({ pager }: { pager: ReturnType<typeof usePager<unknown>> }) {
+  const { page, pages, total, pageSize, setPage } = pager;
+  if (pages <= 1) return null;
+  const label = `${page * pageSize + 1}–${Math.min(total, (page + 1) * pageSize)} of ${total}`;
+  return <PagerBar page={page} setPage={setPage} hasNext={page < pages - 1} pages={pages} label={label} />;
+}
+
+/** Pager controls; also used directly for lists paged by the server. */
+export function PagerBar({ page, setPage, hasNext, pages, label }: PagerProps) {
+  if (page === 0 && !hasNext) return null;
+  return (
+    <div className="pager">
+      <span className="muted small">{label}</span>
+      <button type="button" disabled={page === 0} onClick={() => setPage(0)} aria-label="First page">«</button>
+      <button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>Prev</button>
+      <span className="small">Page {page + 1}{pages ? ` of ${pages}` : ''}</span>
+      <button type="button" disabled={!hasNext} onClick={() => setPage(page + 1)}>Next</button>
+      {pages !== undefined && (
+        <button type="button" disabled={!hasNext} onClick={() => setPage(pages - 1)} aria-label="Last page">»</button>
+      )}
+    </div>
   );
 }

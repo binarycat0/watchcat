@@ -27,7 +27,7 @@ export function Layout() {
         </Link>
         <nav>
           <NavLink to="/tasks">Tasks</NavLink>
-          <NavLink to="/report">Report</NavLink>
+          <NavLink to="/stats">Stats</NavLink>
         </nav>
         <div id="meta" className="muted small">
           {status.isError
