@@ -7,9 +7,8 @@ on:
       - doc/**
       - README.md
       - install.sh
-      - mkdocs_hooks.py
+      - utils/mkdocs/**
       - mkdocs.yml
-      - docs-requirements.txt
       - .github/workflows/docs.yml
   workflow_dispatch:
 
@@ -28,16 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: docs-requirements.txt
-
-      - run: pip install -r docs-requirements.txt
-
       - name: Build site
-        run: mkdocs build --strict
+        run: make docs
 
       - uses: actions/upload-pages-artifact@v3
         with:
