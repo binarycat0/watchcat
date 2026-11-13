@@ -19,9 +19,11 @@ import (
 	"github.com/binarycat0/watchcat/internal/slack"
 )
 
-// healthChecks builds the tool checks from config and the watched PRs. The
-// daemon passes its live config so the report reflects settings changes.
-func (e env) healthChecks(cfg config.Config, prs []core.PR) []health.Check {
+// healthChecks builds every check from config and the watched PRs. It is the
+// single list behind `watchcat health`, the API and the web UI. The daemon
+// passes its live config so the report reflects settings changes, and a
+// daemon probe that describes itself; the CLI passes one that asks the API.
+func (e env) healthChecks(cfg config.Config, prs []core.PR, daemon func(context.Context) (string, error)) []health.Check {
 	repos := make([]string, len(prs))
 	for i, p := range prs {
 		repos[i] = p.Key().Slug()
@@ -32,7 +34,7 @@ func (e env) healthChecks(cfg config.Config, prs []core.PR) []health.Check {
 	}
 	ex := health.OSExec{}
 	return []health.Check{
-		e.setupCheck(),
+		e.setupCheck(daemon),
 		health.GH{Exec: ex, Repos: repos},
 		health.SlackBot{Bot: bot, Channel: cfg.Slack.Target(), TokenSource: e.tokenSource, StoreErr: e.tokenErr},
 		health.SlackCLI{Exec: ex},
@@ -42,9 +44,12 @@ func (e env) healthChecks(cfg config.Config, prs []core.PR) []health.Check {
 
 // setupCheck describes watchcat's own install, with secrets re-read from
 // the keychain on every run so a newly set token shows up immediately.
-func (e env) setupCheck() health.Setup {
+func (e env) setupCheck(daemon func(context.Context) (string, error)) health.Setup {
 	home, _ := os.UserHomeDir()
 	return health.Setup{
+		Config:  e.paths.Config,
+		DB:      e.paths.DB,
+		Daemon:  daemon,
 		Bin:     e.paths.Bin,
 		Link:    filepath.Join(home, ".local", "bin", "watchcat"),
 		Service: serviceStatus,
@@ -84,7 +89,8 @@ func (e env) secretStatuses() []health.SecretStatus {
 }
 
 // localHealth runs the checks in this process. It reads the watched repos
-// straight from the database, which is safe because the daemon isn't running.
+// straight from the database (read-only use, safe alongside the daemon) and
+// asks the API whether the daemon is up.
 func (e env) localHealth(ctx context.Context) health.Report {
 	var prs []core.PR
 	if _, err := os.Stat(e.paths.DB); err == nil {
@@ -93,12 +99,25 @@ func (e env) localHealth(ctx context.Context) health.Report {
 			store.Close()
 		}
 	}
-	return health.Run(ctx, e.healthChecks(e.cfg, prs)...)
+	return health.Run(ctx, e.healthChecks(e.cfg, prs, e.probeDaemon)...)
+}
+
+// probeDaemon asks the daemon's API for its status.
+func (e env) probeDaemon(ctx context.Context) (string, error) {
+	st, err := e.client().Status(ctx)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", e.cfg.Addr(), err)
+	}
+	return daemonInfo(st.PID, st.Version, st.PRs, e.cfg.Addr()), nil
+}
+
+func daemonInfo(pid int, version string, prs int, addr string) string {
+	return fmt.Sprintf("pid %d, version %s, %d PRs, http://%s", pid, version, prs, addr)
 }
 
 func cmdHealth(e env, args []string) error {
 	fs := flag.NewFlagSet("health", flag.ContinueOnError)
-	local := fs.Bool("local", false, "run checks in this shell instead of asking the daemon")
+	local := fs.Bool("local", false, "run the checks from this shell instead of asking the daemon")
 	asJSON := fs.Bool("json", false, "print the report as JSON")
 	refresh := fs.Bool("refresh", false, "ask the daemon to re-run checks instead of using its cached report")
 	if err := fs.Parse(args); err != nil {
@@ -128,10 +147,10 @@ func cmdHealth(e env, args []string) error {
 		enc.SetIndent("", "  ")
 		return enc.Encode(rep)
 	}
-	fmt.Printf("tool health: %s (checked from %s)\n\n", rep.Status, source)
+	fmt.Printf("health: %s (checked from %s)\n\n", rep.Status, source)
 	printReport(rep)
 	if rep.Status == health.Fail {
-		return fmt.Errorf("required tools are not ready")
+		return fmt.Errorf("required checks failed")
 	}
 	return nil
 }

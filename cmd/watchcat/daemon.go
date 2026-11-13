@@ -125,7 +125,10 @@ func cmdDaemon(e env, args []string) error {
 		},
 		Health: func(ctx context.Context) health.Report {
 			prs, _ := store.ListPRs(ctx)
-			return health.Run(ctx, e.healthChecks(cfg(), prs)...)
+			self := func(context.Context) (string, error) {
+				return daemonInfo(os.Getpid(), version, len(prs), ln.Addr().String()), nil
+			}
+			return health.Run(ctx, e.healthChecks(cfg(), prs, self)...)
 		},
 	}
 	httpSrv := &http.Server{Handler: srv.Handler(os.Getpid()), ReadHeaderTimeout: 5 * time.Second}
