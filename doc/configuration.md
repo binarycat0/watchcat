@@ -22,13 +22,13 @@ Everything lives in `~/.watchcat` (or `$WATCHCAT_HOME`), mode 0700:
 Most of these can also be changed on the Settings page, which applies them
 without a restart.
 
-## GitHub Enterprise
+## Hosts
 
-PRs can be on any host `gh` is signed in to:
+The host comes from the PR URL, so PRs can be on any host `gh` is signed in to:
 
 ```bash
-gh auth login --hostname github.example.com
-watchcat pr add https://github.example.com/org/repo/pull/42   # or github.example.com/org/repo#42
+gh auth login --hostname git.example.com
+watchcat pr add https://git.example.com/org/repo/pull/42
 ```
 
 Adding a PR on a host `gh` isn't signed in to is refused. `watchcat health`

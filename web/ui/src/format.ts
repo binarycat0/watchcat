@@ -25,10 +25,9 @@ export function human(secs: number): string {
 
 export const fullTime = (ts?: string | null) => (ts ? new Date(ts).toLocaleString() : '');
 
-const host = (p: PR) => p.host || 'github.com';
-/** Same format as the CLI: github.com PRs stay short, others show their host. */
-export const prRef = (p: PR) => `${host(p) === 'github.com' ? '' : host(p) + '/'}${p.owner}/${p.repo}#${p.number}`;
-export const prURL = (p: PR) => `https://${host(p)}/${p.owner}/${p.repo}/pull/${p.number}`;
+/** Same format as the CLI: owner/repo#123 on every host. */
+export const prRef = (p: PR) => `${p.owner}/${p.repo}#${p.number}`;
+export const prURL = (p: PR) => `https://${p.host}/${p.owner}/${p.repo}/pull/${p.number}`;
 
 export const isFinished = (p: PR) => p.status === 'merged' || p.status === 'closed';
 export const needsAttention = (p: PR) =>

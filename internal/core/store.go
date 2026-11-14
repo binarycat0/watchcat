@@ -80,7 +80,7 @@ var migrations = []string{
 	ALTER TABLE tasks ADD COLUMN result TEXT NOT NULL DEFAULT '';
 	ALTER TABLE prs ADD COLUMN agent_session TEXT NOT NULL DEFAULT '';`,
 
-	// 4: GitHub Enterprise. PRs get a host, and the unique key includes it,
+	// 4: PRs get a host, and the unique key includes it,
 	// which in SQLite means rebuilding the table (see migrate for why this
 	// doesn't cascade-delete history).
 	`CREATE TABLE prs_new (

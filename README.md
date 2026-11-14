@@ -43,7 +43,7 @@ watchcat service start
 ## Usage
 
 ```bash
-watchcat pr add https://github.com/owner/repo/pull/123   # github.com or GitHub Enterprise
+watchcat pr add https://github.com/owner/repo/pull/123
 watchcat pr list
 watchcat pr check <id|ref>       # check now
 watchcat status
@@ -54,7 +54,7 @@ The web UI is at http://127.0.0.1:7878.
 
 More:
 
-- [Configuration](doc/configuration.md): `config.json`, Slack, secrets, GitHub Enterprise
+- [Configuration](doc/configuration.md): `config.json`, Slack, secrets, hosts
 - [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, opencode hand-off
 - [MCP server](doc/mcp.md): let agents link and check their own PRs
 - [Web UI](doc/web-ui.md)

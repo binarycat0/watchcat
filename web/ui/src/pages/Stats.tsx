@@ -67,7 +67,7 @@ export function StatsPage() {
           Time to merge over {plural(r.time_to_merge.count, 'merged PR')} · CI failures over {plural(r.ci_failures.count, 'PR')} ·
           CI result over {plural(r.pipeline_time.count, 'commit')}, first job start to last job end.
         </p>
-        {r.missing_times > 0 && <p className="muted small">{r.missing_times} merged PR(s) have no GitHub timestamps yet; they fill in on the next check.</p>}
+        {r.missing_times > 0 && <p className="muted small">{r.missing_times} merged PR(s) have no timestamps yet; they fill in on the next check.</p>}
 
         <h2>CI jobs</h2>
         {r.jobs.length ? (<>

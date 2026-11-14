@@ -28,9 +28,9 @@ func TestParseRef(t *testing.T) {
 		{"dremio/dremio#123", PRRef{}, false},
 		{"https://github.com/a-b/c.d/pull/7", PRRef{"github.com", "a-b", "c.d", 7}, true},
 		{"https://github.com/a/b/pull/7/files", PRRef{"github.com", "a", "b", 7}, true},
-		{"https://github.tools.sap/org/repo/pull/42", PRRef{"github.tools.sap", "org", "repo", 42}, true},
-		{"github.tools.sap/org/repo#42", PRRef{}, false},
-		{"https://GHE.Example.com/o/r/pull/1", PRRef{"ghe.example.com", "o", "r", 1}, true},
+		{"https://git.example.com/org/repo/pull/42", PRRef{"git.example.com", "org", "repo", 42}, true},
+		{"git.example.com/org/repo#42", PRRef{}, false},
+		{"https://Git.Example.com/o/r/pull/1", PRRef{"git.example.com", "o", "r", 1}, true},
 		{"a/b", PRRef{}, false},
 		{"https://github.com/a/b/issues/7", PRRef{}, false},
 		{"ftp://github.com/a/b/pull/7", PRRef{}, false},
@@ -41,12 +41,9 @@ func TestParseRef(t *testing.T) {
 			t.Errorf("ParseRef(%q) = %+v, %v", c.in, got, err)
 		}
 	}
-	ref := PRRef{"ghe.corp", "o", "r", 1}
-	if ref.String() != "ghe.corp/o/r#1" || ref.Slug() != "ghe.corp/o/r" || ref.URL() != "https://ghe.corp/o/r/pull/1" {
+	ref := PRRef{"git.corp", "o", "r", 1}
+	if ref.String() != "o/r#1" || ref.Slug() != "git.corp/o/r" || ref.URL() != "https://git.corp/o/r/pull/1" {
 		t.Errorf("formatting: %s %s %s", ref.String(), ref.Slug(), ref.URL())
-	}
-	if (PRRef{"github.com", "o", "r", 1}).String() != "o/r#1" {
-		t.Error("github.com refs stay short")
 	}
 }
 
@@ -56,10 +53,10 @@ func TestSameNumberOnTwoHosts(t *testing.T) {
 	if _, err := s.AddPR(ctx, PRRef{"github.com", "o", "r", 1}); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := s.AddPR(ctx, PRRef{"ghe.corp", "o", "r", 1}); err != nil {
+	if _, err := s.AddPR(ctx, PRRef{"git.corp", "o", "r", 1}); err != nil {
 		t.Fatalf("same owner/repo#N on another host is a different PR: %v", err)
 	}
-	if p, err := s.FindPR(ctx, PRRef{"ghe.corp", "o", "r", 1}); err != nil || p.Host != "ghe.corp" {
+	if p, err := s.FindPR(ctx, PRRef{"git.corp", "o", "r", 1}); err != nil || p.Host != "git.corp" {
 		t.Fatalf("find: %+v %v", p, err)
 	}
 }

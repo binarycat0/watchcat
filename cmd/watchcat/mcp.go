@@ -18,7 +18,7 @@ import (
 	"github.com/binarycat0/watchcat/internal/mcp"
 )
 
-const mcpInstructions = `watchcat watches GitHub pull requests for the user: CI results, reviews,
+const mcpInstructions = `watchcat watches pull requests for the user: CI results, reviews,
 merge conflicts. Link a PR to your session with watch_pr right after you
 create it (e.g. after "gh pr create"); watchcat then checks it on a schedule
 and may queue prompts back into your session when CI fails or reviewers
@@ -36,7 +36,7 @@ type mcpTools struct {
 }
 
 var (
-	prArg      = map[string]any{"type": "string", "description": "PR URL, e.g. https://github.com/owner/repo/pull/123. Default: the PR of the current git branch."}
+	prArg      = map[string]any{"type": "string", "description": "PR URL, e.g. https://<host>/owner/repo/pull/123. Default: the PR of the current git branch."}
 	sessionArg = map[string]any{"type": "string", "description": "opencode session ID (ses_...). Default: the session working in this directory."}
 )
 

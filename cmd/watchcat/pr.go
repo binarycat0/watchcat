@@ -130,7 +130,7 @@ func cmdPR(e env, args []string) error {
 			return err
 		}
 		if len(prs) == 0 {
-			fmt.Println("no PRs watched; add one with `watchcat pr add https://github.com/owner/repo/pull/123`")
+			fmt.Println("no PRs watched; add one with `watchcat pr add <PR URL>`")
 			return nil
 		}
 		// tabwriter aligns columns, like str.ljust across rows.
@@ -305,7 +305,7 @@ func cmdStats(e env, args []string) error {
 		fmt.Println("time to merge: no merged PRs yet")
 	}
 	if r.MissingTimes > 0 {
-		fmt.Printf("  (%d merged PRs still missing GitHub timestamps; they fill in on the next check)\n", r.MissingTimes)
+		fmt.Printf("  (%d merged PRs still missing timestamps; they fill in on the next check)\n", r.MissingTimes)
 	}
 	fmt.Printf("CI failures per PR (%d PRs): p50 %g, p95 %g, max %g\n",
 		r.CIFailures.Count, r.CIFailures.P50, r.CIFailures.P95, r.CIFailures.Max)
