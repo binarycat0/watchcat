@@ -84,6 +84,8 @@ nav a.active { background: var(--idle-bg); font-weight: 600; }
 .menu-list .menu-item.danger { color: var(--err); }
 td.actions .menu { display: inline-block; text-align: left; }
 td.actions .menu-list .menu-item { margin: 0; }
+.icon-btn.dots { border: 1px solid transparent; }
+.icon-btn.dots:hover, .icon-btn.dots[aria-expanded="true"] { border-color: var(--line); }
 
 main { max-width: 1100px; margin: 0 auto; padding: 20px 24px 48px; }
 h1 { font-size: 20px; margin: 0 0 4px; }
