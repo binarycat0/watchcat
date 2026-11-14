@@ -30,7 +30,7 @@ so a typo never stops a message.
 | Name | Sent |
 |---|---|
 | `notify_change` | notification when a watched PR changes (kinds picked on Config › Notifications) |
-| `notify_rule` | notification when a [workflow rule](workflows.md) fires, in dry-run or on |
+| `notify_rule` | notification when a [workflow rule](../workflows.md) fires, in dry-run or on |
 | `agent_ci_failed` | prompt for the agent when CI fails (`ci_failed` rule, `watchcat pr prompt-ci`) |
 | `agent_review_threads` | prompt for the agent about unresolved review conversations (`review_threads` rule) |
 | `agent_header` | shared start of both agent prompts |
@@ -72,7 +72,7 @@ make that work:
 
 - Links are written with `{{link URL TEXT}}`, and the notification provider
   decides how a link looks (see its section in
-  [Configuration](configuration.md#supported-stack)); the preview shows
+  [Configuration](index.md#supported-stack)); the preview shows
   exactly what the provider receives.
 - The provider escapes text values (title, message, check names) before
   rendering, so a PR title can't break the message's markup.

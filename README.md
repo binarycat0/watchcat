@@ -21,7 +21,7 @@ One provider per area for now:
 | Area | Provider | Needs |
 |---|---|---|
 | Version control | GitHub | `gh`, signed in with the `repo` scope (`gh auth login`) |
-| Notifications | Slack | a bot token with `chat:write` ([setup](doc/configuration.md#notifications-slack)) |
+| Notifications | Slack | a bot token with `chat:write` ([setup](doc/configuration/index.md#notifications-slack)) |
 | AI agent (optional) | opencode | `opencode` |
 
 ## Installation
@@ -68,10 +68,10 @@ The web UI is at http://127.0.0.1:7878.
 
 More:
 
-- [Configuration](doc/configuration.md): `config.json`, providers, secrets, health checks
+- [Configuration](doc/configuration/index.md): `config.json`, providers, secrets, health checks
 - [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, agent hand-off
 - [MCP server](doc/mcp.md): let agents link and check their own PRs
-- [Templates](doc/templates.md): notification and agent prompt text
+- [Templates](doc/configuration/templates.md): notification and agent prompt text
 - [Web UI](doc/web-ui.md)
 - [HTTP API](doc/api.md)
 - [How it works](doc/architecture.md): task queue, CI run history, code layout

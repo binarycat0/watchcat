@@ -20,7 +20,7 @@ Each rule is `off`, `dry-run` (default) or `on`:
 Dry-run builds the prompt or command and stores it as the task result
 without running it. Actions re-fetch the PR first and skip if it changed.
 Every rule that fires also sends a notification. The notification and the
-agent prompts can be changed; see [Templates](templates.md).
+agent prompts can be changed; see [Templates](configuration/templates.md).
 
 ## Retriggering CI
 
@@ -41,6 +41,6 @@ watchcat pr unbind https://github.com/owner/repo/pull/123
 or pick the session on the PR page, or let the agent do it through the
 [MCP server](mcp.md). A link is only accepted if the agent reports the
 session exists and works in that worktree. How watchcat reaches the agent is
-in [Configuration](configuration.md#ai-agent-opencode). Prompts are queued into the
+in [Configuration](configuration/index.md#ai-agent-opencode). Prompts are queued into the
 session and never retried automatically, so the agent never gets the same
 work twice.

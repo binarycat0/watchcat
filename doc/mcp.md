@@ -5,7 +5,7 @@ just opened to its own session and check on it. The daemon must be running.
 
 Register it with your AI agent as a local MCP server that runs
 `watchcat mcp` (for opencode, see
-[AI agent (opencode)](configuration.md#ai-agent-opencode)), and tell agents to
+[AI agent (opencode)](configuration/index.md#ai-agent-opencode)), and tell agents to
 use it, e.g. in `AGENTS.md`:
 
 ```markdown

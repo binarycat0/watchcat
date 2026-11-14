@@ -124,7 +124,7 @@ export function TemplatesTab() {
               <tr><th className="mono">link, names, indent, join, lower, upper, trim</th><td>functions, e.g. <span className="mono">{'{{link .PR.URL .PR.Ref}}'}</span> (each notification provider writes links its own way), <span className="mono">{'{{names .FailedChecks}}'}</span>, <span className="mono">{'{{indent "   " .Body}}'}</span></td></tr>
             </tbody>
           </table>
-          <p className="muted small">Go <a href="https://pkg.go.dev/text/template" target="_blank" rel="noreferrer">text/template</a> syntax. See the <a href="https://tools.binaryc.at/watchcat/templates/" target="_blank" rel="noreferrer">templates guide</a>.</p>
+          <p className="muted small">Go <a href="https://pkg.go.dev/text/template" target="_blank" rel="noreferrer">text/template</a> syntax. See the <a href="https://tools.binaryc.at/watchcat/configuration/templates/" target="_blank" rel="noreferrer">templates guide</a>.</p>
         </details>
       </div>
     </div>
