@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ActionButton, Empty, HEALTH_TABS, Pill, SettingsLink, Tabs, healthLabel, type ConfigTab, type HealthTab } from '../components';
+import { ActionButton, Empty, HEALTH_TABS, Pill, ProviderHeading, SettingsLink, Tabs, healthLabel, type ConfigTab, type HealthTab } from '../components';
 import { ago } from '../format';
 import type { HealthDetail, HealthResult, HealthStatus } from '../types';
 
@@ -18,6 +18,8 @@ const TABS = (Object.keys(HEALTH_TABS) as HealthTab[]).map((key) => ({ key, labe
 // Where a check's settings are edited, linked from its card.
 const SETTINGS: Record<string, { tab: ConfigTab; text: string }> = {
   slack: { tab: 'notifications', text: 'Set the recipient and see how to set the bot token on the' },
+  gh: { tab: 'vcs', text: 'Set the merge method on the' },
+  opencode: { tab: 'agent', text: 'See how prompts reach opencode on the' },
 };
 
 const isSecret = (d: HealthDetail) => d.label.startsWith('secret ');
@@ -66,6 +68,7 @@ export function HealthPage() {
             })}
           />
           <div className="tab-panel" role="tabpanel">
+            {tab !== 'service' && <ProviderHeading area={tab} />}
             {byTab(tab).length ? byTab(tab).map((r) => <Check key={r.name} r={r} />) : <Empty>No checks here.</Empty>}
           </div>
         </div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ActionButton, CONFIG_TABS, Empty, SettingsLink, Tabs, useToast, type ConfigTab } from '../components';
+import { ActionButton, CONFIG_TABS, Empty, ProviderHeading, SettingsLink, Tabs, useToast, type ConfigTab } from '../components';
 import type { Settings } from '../types';
 import { TemplatesTab } from './Templates';
 
@@ -56,7 +56,7 @@ export function ConfigPage() {
             <div className="form-grid">
               <label>Check every <input value={form.poll_interval} onChange={(e) => set({ poll_interval: e.target.value })} placeholder="5m" /></label>
             </div>
-            <p className="muted small">How often each watched PR is checked. PRs are added by URL, and watchcat only accepts hosts gh is signed in to; see <SettingsLink page="health" tab="vcs" />.</p>
+            <p className="muted small">How often each watched PR is checked.</p>
           </>)}
 
           {tab === 'rules' && (<>
@@ -73,16 +73,29 @@ export function ConfigPage() {
               ))}</tbody>
             </table>
             <p className="muted small"><b>dry-run</b> builds the command or prompt and records it as the task's result without acting. <b>on</b> acts for real, including manual "send to agent" buttons.</p>
+          </>)}
+
+          {tab === 'vcs' && (<>
+            <ProviderHeading area="vcs" />
             <div className="form-grid">
-              <label>Merge method (for auto-merge) <select value={form.merge_method} onChange={(e) => set({ merge_method: e.target.value })}>
+              <label>Merge method (merge and auto-merge) <select value={form.github_merge_method} onChange={(e) => set({ github_merge_method: e.target.value })}>
                 {d.merge_methods.map((m) => <option key={m}>{m}</option>)}
               </select></label>
             </div>
+            <p className="muted small">PRs are added by URL, on any host <span className="mono">gh</span> is signed in to; see <SettingsLink page="health" tab="vcs" />.
+              Saved under <span className="mono">github</span> in config.json.</p>
+          </>)}
+
+          {tab === 'agent' && (<>
+            <ProviderHeading area="agent" />
+            <p className="muted small">Workflow prompts go to the opencode session bound to each PR (<span className="mono">watchcat pr bind</span>, or the{' '}
+              <span className="mono">watch_pr</span> MCP tool). Nothing to configure here yet. Edit the prompts in <SettingsLink page="config" tab="templates" />;
+              check opencode in <SettingsLink page="health" tab="agent" />.</p>
           </>)}
 
           {tab === 'notifications' && (<>
             <fieldset>
-              <legend className="muted small">Send a Slack message when a PR changes like this</legend>
+              <legend className="muted small">Send a notification when a PR changes like this</legend>
               {d.change_kinds.map((k) => (
                 <label key={k} className="check">
                   <input type="checkbox" checked={form.notify_on.includes(k)}
@@ -91,7 +104,7 @@ export function ConfigPage() {
                 </label>
               ))}
             </fieldset>
-            <h3>Slack</h3>
+            <ProviderHeading area="notifications" />
             <div className="form-grid">
               <label>Your Slack user ID (DMs) <input value={form.slack_user_id} onChange={(e) => set({ slack_user_id: e.target.value })} placeholder="U0123456789" /></label>
               <label>Or a channel ID <input value={form.slack_channel} onChange={(e) => set({ slack_channel: e.target.value })} placeholder="C0123456789" /></label>

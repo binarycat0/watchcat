@@ -46,7 +46,7 @@ func TestLiveUpdateNeverWritesToken(t *testing.T) {
 
 	s := live.Settings()
 	s.Workflows["merge"] = "on"
-	s.MergeMethod = "rebase"
+	s.GitHubMergeMethod = "rebase"
 	s.SlackUserID = "U9"
 	if err := s.Validate([]string{"merge", "review_threads", "ci_failed", "needs_review"}); err != nil {
 		t.Fatal(err)
@@ -58,8 +58,11 @@ func TestLiveUpdateNeverWritesToken(t *testing.T) {
 	if strings.Contains(string(b), "xoxb") {
 		t.Fatalf("token leaked into config.json:\n%s", b)
 	}
+	if !strings.Contains(string(b), `"github": {`) || strings.Contains(string(b), "\n  \"merge_method\"") {
+		t.Fatalf("merge_method should be under github:\n%s", b)
+	}
 	reloaded, _ := Load(p)
-	if reloaded.Workflows["merge"] != "on" || reloaded.MergeMethod != "rebase" || reloaded.Slack.UserID != "U9" {
+	if reloaded.Workflows["merge"] != "on" || reloaded.GitHub.MergeMethod != "rebase" || reloaded.Slack.UserID != "U9" {
 		t.Fatalf("settings not persisted: %+v", reloaded)
 	}
 	if got := live.Get(); got.Workflows["merge"] != "on" || got.Slack.BotToken == "" {
@@ -69,15 +72,15 @@ func TestLiveUpdateNeverWritesToken(t *testing.T) {
 
 func TestSettingsValidate(t *testing.T) {
 	rules := []string{"merge"}
-	good := Settings{Workflows: map[string]string{"merge": "dry-run"}, MergeMethod: "squash", PollInterval: Duration{5 * 60e9}}
+	good := Settings{Workflows: map[string]string{"merge": "dry-run"}, GitHubMergeMethod: "squash", PollInterval: Duration{5 * 60e9}}
 	if err := good.Validate(rules); err != nil {
 		t.Fatal(err)
 	}
 	for _, bad := range []Settings{
-		{Workflows: map[string]string{"merge": "yes"}, MergeMethod: "squash", PollInterval: good.PollInterval},
-		{Workflows: map[string]string{"nope": "on"}, MergeMethod: "squash", PollInterval: good.PollInterval},
-		{MergeMethod: "fast-forward", PollInterval: good.PollInterval},
-		{MergeMethod: "squash", PollInterval: Duration{1e9}},
+		{Workflows: map[string]string{"merge": "yes"}, GitHubMergeMethod: "squash", PollInterval: good.PollInterval},
+		{Workflows: map[string]string{"nope": "on"}, GitHubMergeMethod: "squash", PollInterval: good.PollInterval},
+		{GitHubMergeMethod: "fast-forward", PollInterval: good.PollInterval},
+		{GitHubMergeMethod: "squash", PollInterval: Duration{1e9}},
 	} {
 		if bad.Validate(rules) == nil {
 			t.Errorf("should reject %+v", bad)

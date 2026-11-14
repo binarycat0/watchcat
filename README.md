@@ -9,6 +9,14 @@ talk to it.
 
 Documentation: https://tools.binaryc.at/watchcat
 
+Supported stack, one provider per area for now:
+
+| Area | Provider |
+|---|---|
+| Version control | GitHub (`gh` CLI) |
+| Notifications | Slack |
+| AI agent | opencode |
+
 ## Installation
 
 
@@ -36,7 +44,7 @@ watchcat service start
 - macOS or Linux
 - `gh`, signed in with the `repo` scope (`gh auth login`)
 - `~/.local/bin` on `PATH`
-- optional: a Slack bot token with `chat:write` ([Slack](doc/configuration.md#slack)), `opencode`
+- optional: a Slack bot token with `chat:write` ([Slack](doc/configuration.md#notifications-slack)), `opencode`
 
 `watchcat health` checks all of this.
 
@@ -54,7 +62,7 @@ The web UI is at http://127.0.0.1:7878.
 
 More:
 
-- [Configuration](doc/configuration.md): `config.json`, Slack, secrets, hosts
+- [Configuration](doc/configuration.md): `config.json`, supported stack, GitHub, Slack, opencode, secrets
 - [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, opencode hand-off
 - [MCP server](doc/mcp.md): let agents link and check their own PRs
 - [Web UI](doc/web-ui.md)

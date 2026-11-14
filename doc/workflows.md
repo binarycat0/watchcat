@@ -14,7 +14,7 @@ Each rule is `off`, `dry-run` (default) or `on`:
 
 ```json
 "workflows": { "merge": "dry-run", "review_threads": "dry-run", "ci_failed": "dry-run", "needs_review": "dry-run" },
-"merge_method": "squash"
+"github": { "merge_method": "squash" }
 ```
 
 Dry-run builds the prompt or command and stores it as the task result

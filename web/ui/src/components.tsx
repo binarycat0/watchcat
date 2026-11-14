@@ -242,12 +242,27 @@ export function Tabs<K extends string>({ tabs, active, onChange }: {
 // ---- links to settings pages ----
 
 export const CONFIG_TABS = {
-  schedule: 'Schedule', rules: 'Workflow rules', notifications: 'Notifications', templates: 'Templates',
+  schedule: 'Schedule', rules: 'Workflow rules', vcs: 'Version control', notifications: 'Notifications',
+  agent: 'AI agent', templates: 'Templates',
 } as const;
 export const HEALTH_TABS = {
   service: 'Service', vcs: 'Version control', notifications: 'Notifications', agent: 'AI agent',
 } as const;
 export type ConfigTab = keyof typeof CONFIG_TABS;
+
+/** The provider behind each area; one each for now, more may come later. */
+export const PROVIDERS = {
+  vcs: { area: 'Version control', name: 'GitHub', via: 'gh' },
+  notifications: { area: 'Notifications', name: 'Slack' },
+  agent: { area: 'AI agent', name: 'opencode' },
+} as const;
+export type ProviderArea = keyof typeof PROVIDERS;
+
+/** "Version control · GitHub (gh)": heads a tab whose settings or checks belong to one provider. */
+export function ProviderHeading({ area }: { area: ProviderArea }) {
+  const p: { area: string; name: string; via?: string } = PROVIDERS[area];
+  return <h3 className="provider-heading">{p.area} <span className="muted">· {p.name}{p.via && <> (<span className="mono">{p.via}</span>)</>}</span></h3>;
+}
 export type HealthTab = keyof typeof HEALTH_TABS;
 
 /** One look for every pointer to a settings page: "Config › Workflow rules", opening that tab. */

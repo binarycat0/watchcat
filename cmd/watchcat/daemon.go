@@ -92,7 +92,7 @@ func cmdDaemon(e env, args []string) error {
 	interval := func() time.Duration { return cfg().PollInterval.Duration }
 	gh := github.GH{}
 	oc := agent.Opencode{} // drives `opencode api` from each session's worktree
-	method := func() string { return cfg().MergeMethod }
+	method := func() string { return cfg().GitHub.MergeMethod }
 	pool := &worker.Pool{
 		Store: store,
 		Handlers: map[string]worker.Handler{

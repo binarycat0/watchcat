@@ -80,8 +80,8 @@ export interface RuleInfo { name: string; action: string; mode?: string; matches
 
 export interface Settings {
   workflows: Record<string, string>;
-  merge_method: string;
   poll_interval: string;
+  github_merge_method: string;
   notify_on: string[];
   slack_user_id: string;
   slack_channel: string;

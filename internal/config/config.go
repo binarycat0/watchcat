@@ -30,13 +30,21 @@ type Config struct {
 	TickInterval Duration `json:"tick_interval"`
 	// Workers is how many background tasks may run at once.
 	Workers int `json:"workers"`
-	// NotifyOn lists the PR change kinds that send a Slack message.
+	// NotifyOn lists the PR change kinds that send a notification.
 	NotifyOn []string `json:"notify_on"`
-	Slack    Slack    `json:"slack"`
 	// Workflows sets each workflow rule to "off", "dry-run" or "on".
 	// dry-run does everything except the action itself and records what it
 	// would have done.
 	Workflows map[string]string `json:"workflows"`
+
+	// Provider settings, one key per provider: version control (GitHub via
+	// gh), notifications (Slack). The AI agent (opencode) has none yet.
+	GitHub GitHub `json:"github"`
+	Slack  Slack  `json:"slack"`
+}
+
+// GitHub holds version control settings for GitHub, used through gh.
+type GitHub struct {
 	// MergeMethod is used for merges and auto-merge: squash, merge or rebase.
 	MergeMethod string `json:"merge_method"`
 }
@@ -112,7 +120,7 @@ func Default() Config {
 		Workflows: map[string]string{
 			"merge": "dry-run", "review_threads": "dry-run", "ci_failed": "dry-run", "needs_review": "dry-run",
 		},
-		MergeMethod: "squash",
+		GitHub: GitHub{MergeMethod: "squash"},
 	}
 }
 

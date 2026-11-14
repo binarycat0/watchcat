@@ -15,16 +15,31 @@ Everything lives in `~/.watchcat` (or `$WATCHCAT_HOME`), mode 0700:
 | `host`, `port` | where the API and web UI are served (default `127.0.0.1`, `7878`); loopback only, restart to apply |
 | `poll_interval` | how often each PR is checked, e.g. `"5m"` |
 | `tick_interval`, `workers` | planner tick and worker pool size |
-| `slack` | `user_id` or `channel`, see [Slack](#slack) |
-| `notify_on` | change kinds that send a message (default: all except `pushed`) |
-| `workflows`, `merge_method` | see [Workflows](workflows.md) |
+| `notify_on` | change kinds that send a notification (default: all except `pushed`) |
+| `workflows` | see [Workflows](workflows.md) |
+| `github` | version control settings: `merge_method`, see [Version control](#version-control-github) |
+| `slack` | notification settings: `user_id` or `channel`, see [Notifications](#notifications-slack) |
 
-Most of these can also be changed on the Settings page, which applies them
+Settings that belong to one provider live under that provider's key, so
+another provider can get its own section later.
+
+Most of these can also be changed on the Config page, which applies them
 without a restart.
 
-## Hosts
+## Supported stack
 
-The host comes from the PR URL, so PRs can be on any host `gh` is signed in to:
+watchcat has three integration areas, each with one provider for now:
+
+| Area | Provider | Config key | Health check |
+|---|---|---|---|
+| Version control | GitHub, through the `gh` CLI | `github` | gh |
+| Notifications | Slack bot | `slack` | Slack bot |
+| AI agent | opencode | none yet | opencode |
+
+## Version control (GitHub)
+
+watchcat reads and acts on PRs with `gh`. The host comes from the PR URL, so
+PRs can be on any host `gh` is signed in to:
 
 ```bash
 gh auth login --hostname git.example.com
@@ -34,7 +49,15 @@ watchcat pr add https://git.example.com/org/repo/pull/42
 Adding a PR on a host `gh` isn't signed in to is refused. `watchcat health`
 lists each signed-in host, its scopes and access to watched repos.
 
-## Slack
+The merge method used by the `merge` and `needs_review` (auto-merge) rules:
+
+```json
+"github": { "merge_method": "squash" }
+```
+
+`squash`, `merge` or `rebase`.
+
+## Notifications (Slack)
 
 Create a Slack app with a bot token that has `chat:write`, then:
 
@@ -50,6 +73,15 @@ bot was invited to:
 ```json
 "slack": { "user_id": "U0123456789" }
 ```
+
+`notify_on` picks which PR changes send a message.
+
+## AI agent (opencode)
+
+Workflow prompts (CI failures, review threads) go to the opencode session
+bound to each PR, with `watchcat pr bind` or the agent's own `watch_pr` MCP
+call. There is nothing to configure yet; see [Workflows](workflows.md),
+[MCP server](mcp.md) and [Templates](templates.md).
 
 ## Secrets
 
