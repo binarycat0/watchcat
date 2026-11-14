@@ -71,11 +71,7 @@ export function HealthPage() {
             onChange={(t) => setParams(t === 'service' ? {} : { tab: t }, { replace: true })}
             tabs={TABS.map((t) => {
               const st = worst(byTab(t.key));
-              const bad = st === 'fail' || st === 'warn';
-              return {
-                key: t.key, className: bad ? st : undefined,
-                label: <span title={bad ? healthLabel[st] : undefined}>{t.label}{bad && <span className="sr-only"> ({healthLabel[st]})</span>}</span>,
-              };
+              return { key: t.key, label: <>{t.label}{(st === 'fail' || st === 'warn') && <span className={`tab-dot ${st}`} aria-label={healthLabel[st]} title={healthLabel[st]} />}</> };
             })}
           />
           <div className="tab-panel" role="tabpanel">
