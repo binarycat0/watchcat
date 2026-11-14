@@ -89,20 +89,20 @@ export function HealthPage() {
 
 function Check({ r }: { r: HealthResult }) {
   return (
-    <section className={`health-card ${r.status}`}>
+    <section className="health-card">
       <div className="health-card-head">
         <Pill status={r.status} label={healthLabel[r.status]} />
         <strong>{r.title}</strong>
         {r.version && <span className="muted small mono">{r.version}</span>}
         <span className="muted small">{r.required ? 'required' : 'optional'}</span>
       </div>
-      <div className={r.status === 'fail' ? 'bad' : 'muted'}>{r.summary}</div>
+      <div className="muted">{r.summary}</div>
       {!!r.details?.length && (
         <table className="health-details">
           <tbody>{r.details.map((d, i) => (
             <tr key={i}>
               <th scope="row">{d.label}</th>
-              <td className={d.status === 'fail' ? 'bad' : ''}>{d.value}</td>
+              <td>{d.value}</td>
             </tr>
           ))}</tbody>
         </table>

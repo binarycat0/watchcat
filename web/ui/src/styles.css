@@ -208,9 +208,6 @@ h3 { font-size: 14px; margin: 16px 0 8px; }
 .tab.warn.on, .tab.fail.on { font-weight: 600; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .health-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
-.health-card.fail { box-shadow: inset 3px 0 var(--err); }
-.health-card.warn { box-shadow: inset 3px 0 var(--warn); }
-.health-card.ok { box-shadow: inset 3px 0 var(--ok); }
 .health-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
 table.health-details { margin-top: 8px; table-layout: fixed; }
 table.health-details th { width: 30%; font-size: 13px; font-weight: 500; color: var(--muted); }
