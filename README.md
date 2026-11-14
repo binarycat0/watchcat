@@ -94,4 +94,4 @@ make docs-serve  # docs site on :8000 (Docker)
 
 ### Releasing
 
-Push a `v*` tag, or run the **Release** workflow on `main` from the Actions tab with a version such as `v0.2.0` (and optional notes). Either way it builds the binaries and publishes the release.
+Push a `v*` tag, or run the **Release** workflow on `main` from the Actions tab with a version such as `v0.2.0` (and optional notes). Either way it builds the binaries and publishes the GitHub release.
