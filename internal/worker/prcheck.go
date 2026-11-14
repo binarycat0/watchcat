@@ -136,7 +136,7 @@ func (h *PRCheck) Handle(ctx context.Context, t core.Task) error {
 		if err := h.Store.SetPaused(ctx, pr.ID, true); err != nil {
 			return err
 		}
-		h.Store.AddEvent(ctx, pr.ID, "paused", "auto-paused: PR is "+snap.Status())
+		h.Store.AddEvent(ctx, pr.ID, "stopped", "stopped watching: PR is "+snap.Status())
 	}
 	return nil
 }
