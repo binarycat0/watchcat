@@ -34,21 +34,13 @@ export function HealthPage() {
   const tab = (TABS.some((t) => t.key === params.get('tab')) ? params.get('tab') : 'service') as HealthTab;
   const h = health.data;
 
-  // Split the report into tabs. Secrets are listed by the setup check but
-  // belong with what uses them: the Slack token goes to Notifications.
+  // Split the report into tabs. The setup check also lists where each secret
+  // comes from; the Slack bot check already shows that for its token.
   const byTab = (key: HealthTab): HealthResult[] => {
     if (!h) return [];
     const known = Object.values(TAB_CHECKS).flat();
     const rs = h.results.filter((r) => TAB_CHECKS[key].includes(r.name) || (key === 'service' && !known.includes(r.name)));
-    const secrets = h.results.find((r) => r.name === 'setup')?.details?.filter(isSecret) ?? [];
-    if (key === 'service') return rs.map((r) => (r.name === 'setup' ? { ...r, details: r.details?.filter((d) => !isSecret(d)) } : r));
-    if (key === 'notifications' && secrets.length) {
-      return [...rs, {
-        name: 'secrets', title: 'Secrets', required: false, summary: 'stored in the OS keychain',
-        status: secrets.some((d) => d.status === 'fail') ? 'fail' : 'ok', details: secrets.map((d) => ({ ...d, label: d.label.replace('secret ', '') })),
-      }];
-    }
-    return rs;
+    return rs.map((r) => (r.name === 'setup' ? { ...r, details: r.details?.filter((d) => !isSecret(d)) } : r));
   };
 
   return (
