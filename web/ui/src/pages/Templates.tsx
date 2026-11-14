@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { Empty, SettingsLink, useToast } from '../components';
-import type { TemplateInfo } from '../types';
+import { Empty, Menu, Pill, SettingsLink, useToast, type ConfigTab, type Tone } from '../components';
+import type { Settings, TemplateInfo } from '../types';
 
 const GROUPS: { key: TemplateInfo['group']; label: string }[] = [
   { key: 'notify', label: 'Notifications' },
@@ -26,6 +26,7 @@ function useDebounced<T>(value: T, ms: number): T {
  */
 export function TemplatesTab() {
   const list = useQuery({ queryKey: ['templates'], queryFn: api.templates, refetchInterval: false });
+  const settings = useQuery({ queryKey: ['settings'], queryFn: api.settings, refetchInterval: false });
   const [params, setParams] = useSearchParams();
   // Unsaved edits, per template, so switching templates doesn't lose them.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -89,26 +90,19 @@ export function TemplatesTab() {
 
       <div className="tpl-edit">
         <div className="tpl-head">
-          <div>
-            <h3>{cur.title} <span className="mono muted">{cur.name}</span></h3>
-            <p className="muted small">{cur.description}{cur.name === 'notify_change' && <> Which changes send one is set in <SettingsLink page="config" tab="notifications" />.</>}</p>
-          </div>
-          <div className="btns">
-            <button type="button" disabled={!dirty || busy} onClick={() => edit(cur.text)}>Discard</button>
-            <button type="button" disabled={!cur.custom || busy}
-              title={cur.custom ? 'Delete your file and use the built-in template' : 'Already the built-in template'}
-              onClick={() => window.confirm(`Restore the default ${cur.title} template? Your version is deleted.`) && restore.mutate()}>
-              Restore default
-            </button>
-            <button type="button" className={dirty ? 'primary' : ''} disabled={!dirty || busy || !!previewErr} onClick={() => save.mutate()}>
-              Save template
-            </button>
+          <h3 className="mono" title={cur.title}>{cur.name}</h3>
+          <div className="tpl-actions">
+            <IconButton label="Discard changes" disabled={!dirty || busy} onClick={() => edit(cur.text)}><IconX /></IconButton>
+            <IconButton label={cur.custom ? 'Restore default (deletes your file)' : 'Already the default'} disabled={!cur.custom || busy}
+              onClick={() => window.confirm(`Restore the default ${cur.name}? Your version is deleted.`) && restore.mutate()}><IconHistory /></IconButton>
+            <IconButton label="Save template" className={dirty ? 'primary' : ''} disabled={!dirty || busy || !!previewErr}
+              onClick={() => save.mutate()}><IconSave /></IconButton>
           </div>
         </div>
-        <p className="muted small">
-          {cur.custom ? <>Your version, from <span className="mono">{cur.path}</span>.</> : <>Built-in default. Saving creates <span className="mono">{cur.path}</span>.</>}
-          {' '}Applies to the next message; no restart needed.
-        </p>
+        <div className="tpl-sub">
+          <StatusBadge t={cur} settings={settings.data?.settings} all={all} />
+          <span className="muted small">{cur.description}</span>
+        </div>
         {cur.error && !dirty && <p className="bad small">The saved file doesn't work, so watchcat uses the default: {cur.error}</p>}
 
         <textarea className="tpl-text mono" aria-label={`${cur.title} template`} spellCheck={false}
@@ -134,3 +128,88 @@ export function TemplatesTab() {
     </div>
   );
 }
+
+type Status = { label: string; tone: Tone; used: string; tab: ConfigTab };
+
+const modeTone: Record<string, Tone> = { on: 'ok', 'dry-run': 'info', off: 'idle' };
+
+/** Whether a template is in use right now, from the live settings. */
+function status(t: TemplateInfo, s: Settings, all: TemplateInfo[]): Status {
+  const recipient = !!(s.slack_user_id || s.slack_channel);
+  const mode = (rule: string) => s.workflows[rule] || 'off';
+  const anyRule = Object.values(s.workflows).some((m) => m === 'on' || m === 'dry-run');
+  switch (t.name) {
+    case 'notify_change': {
+      const on = recipient && s.notify_on.length > 0;
+      return {
+        label: on ? 'on' : 'off', tone: on ? 'ok' : 'idle', tab: 'notifications',
+        used: !recipient ? 'Not sent: no notification recipient is set.'
+          : on ? `Sent for ${s.notify_on.length} kind(s) of PR change.` : 'Not sent: no PR changes are picked.',
+      };
+    }
+    case 'notify_rule': {
+      const on = recipient && anyRule;
+      return {
+        label: on ? 'on' : 'off', tone: on ? 'ok' : 'idle', tab: recipient ? 'rules' : 'notifications',
+        used: !recipient ? 'Not sent: no notification recipient is set.'
+          : on ? 'Sent when a workflow rule in dry-run or on fires.' : 'Not sent: every workflow rule is off.',
+      };
+    }
+    case 'agent_ci_failed':
+    case 'agent_review_threads': {
+      const rule = t.name.replace('agent_', '');
+      const m = mode(rule);
+      return {
+        label: m, tone: modeTone[m] ?? 'idle', tab: 'rules',
+        used: m === 'on' ? `Sent to the agent by the ${rule} rule.`
+          : m === 'dry-run' ? `Built by the ${rule} rule and recorded on the task, not sent.` : `Not used: the ${rule} rule is off.`,
+      };
+    }
+    default: {
+      const users = all.filter((x) => x.uses?.includes(t.name));
+      return {
+        label: 'shared', tone: 'info', tab: 'rules',
+        used: `Included in ${users.map((x) => x.name).join(' and ')}.`,
+      };
+    }
+  }
+}
+
+function StatusBadge({ t, settings, all }: { t: TemplateInfo; settings?: Settings; all: TemplateInfo[] }) {
+  if (!settings) return null;
+  const st = status(t, settings, all);
+  return (
+    <Menu className="pill-btn" label={`${t.name}: ${st.label}`} trigger={<Pill status={st.label} tone={st.tone} />}>
+      <div className="tpl-pop small">
+        <p>{st.used}</p>
+        <p>Change it on <SettingsLink page="config" tab={st.tab} />.</p>
+        <p className="muted">{t.custom ? 'Your version: ' : 'Built-in default; saving creates '}<span className="mono">{t.path}</span></p>
+      </div>
+    </Menu>
+  );
+}
+
+function IconButton({ label, className, disabled, onClick, children }: {
+  label: string; className?: string; disabled?: boolean; onClick: () => void; children: ReactNode;
+}) {
+  return (
+    <button type="button" className={'icon-btn tpl-icon ' + (className ?? '')} aria-label={label} title={label}
+      disabled={disabled} onClick={onClick}>{children}</button>
+  );
+}
+
+// Icons in the style of the header's (24px grid, 2px stroke).
+const Svg = ({ children }: { children: ReactNode }) => (
+  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor"
+    strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{children}</svg>
+);
+const IconX = () => <Svg><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Svg>;
+const IconHistory = () => (
+  <Svg><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M12 7v5l4 2" /></Svg>
+);
+const IconSave = () => (
+  <Svg>
+    <path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+    <path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7" /><path d="M7 3v4a1 1 0 0 0 1 1h7" />
+  </Svg>
+);
