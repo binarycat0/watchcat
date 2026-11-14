@@ -8,7 +8,7 @@ SQLite-backed queue, run by a worker pool:
    reviews, unresolved threads), stores a snapshot and diffs it with the last one.
 3. Each change (`ci_failed`, `conflict`, `new_comments`, ...) goes into the
    PR's history and is routed to follow-up tasks: a notification
-   (`slack.notify`) and the [workflow rules](workflows.md) (`Router` in
+   (`slack.notify`) and the [workflow rules](../workflows.md) (`Router` in
    `internal/worker`).
 4. Failed tasks retry with backoff; tasks interrupted by a restart are
    requeued. `watchcat tasks` lists them.

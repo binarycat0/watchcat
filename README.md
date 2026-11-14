@@ -69,12 +69,11 @@ The web UI is at http://127.0.0.1:7878.
 More:
 
 - [Configuration](doc/configuration/index.md): `config.json`, providers, secrets, health checks
-- [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, agent hand-off
-- [MCP server](doc/mcp.md): let agents link and check their own PRs
 - [Templates](doc/configuration/templates.md): notification and agent prompt text
+- [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, agent hand-off
 - [Web UI](doc/web-ui.md)
 - [HTTP API](doc/api.md)
-- [How it works](doc/architecture.md): task queue, CI run history, code layout
+- [MCP server](doc/mcp.md): let agents link and check their own PRs
 
 ## Development
 
@@ -84,18 +83,10 @@ More:
 - `node` 20+ and `npm` (web UI)
 - `docker` or `podman` (docs site)
 
-## Install
-
 ```bash
 make install     # build UI + binary, install like install.sh does
 make test        # go vet, go test -race, UI typecheck
-make build       # UI + bin/watchcat
-make build-go    # binary only, no Node needed
-WATCHCAT_HOME=/tmp/wd ./bin/watchcat daemon   # isolated dev instance
-cd web/ui && npm ci && npm run dev            # UI hot reload on :5173, API proxied to :7878 (WATCHCAT_API overrides)
-make docs-serve  # docs site on :8000 (DOCKER=podman to use podman)
 ```
 
-### Releasing
-
-Push a `v*` tag, or run the **Release** workflow on `main` from the Actions tab with a version such as `v0.2.0` (and optional notes). Either way it builds the binaries and publishes the GitHub release.
+More in [Contributing](doc/contributing/index.md): dev instance, UI hot
+reload, docs site, releasing, and [how it works](doc/contributing/architecture.md).

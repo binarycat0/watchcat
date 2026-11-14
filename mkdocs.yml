@@ -50,9 +50,11 @@ nav:
   - Configuration:
       - configuration/index.md
       - Templates: configuration/templates.md
-  - Workflows: workflows.md
   - Features:
+      - Workflows: workflows.md
       - Web UI: web-ui.md
       - HTTP API: api.md
       - MCP server: mcp.md
-  - How it works: architecture.md
+  - Contributing:
+      - contributing/index.md
+      - How it works: contributing/architecture.md
