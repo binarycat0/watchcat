@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { ActionButton, Empty, Pill, Tabs, healthLabel } from '../components';
 import { ago } from '../format';
@@ -20,6 +20,11 @@ const TABS: { key: HealthTab; label: string }[] = [
   { key: 'notifications', label: 'Notifications' },
   { key: 'agent', label: 'AI agent' },
 ];
+
+// Where a check's settings are edited, linked from its card.
+const SETTINGS: Record<string, { to: string; text: string; page: string }> = {
+  slack: { to: '/config?tab=notifications', page: 'Config › Notifications', text: 'Set the recipient and see how to set the bot token on the' },
+};
 
 const isSecret = (d: HealthDetail) => d.label.startsWith('secret ');
 const rank: Record<HealthStatus, number> = { fail: 3, warn: 2, ok: 1, skip: 0 };
@@ -94,6 +99,9 @@ function Check({ r }: { r: HealthResult }) {
             </tr>
           ))}</tbody>
         </table>
+      )}
+      {SETTINGS[r.name] && (
+        <p className="muted small health-link">{SETTINGS[r.name].text} <Link to={SETTINGS[r.name].to}>{SETTINGS[r.name].page}</Link> page.</p>
       )}
     </section>
   );

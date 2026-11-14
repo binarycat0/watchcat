@@ -236,3 +236,4 @@ table.health-details tr:last-child th, table.health-details tr:last-child td { b
   .list li { flex-wrap: wrap; gap: 2px 12px; }
   .list .when, .list .kind { min-width: 0; }
 }
+.health-link { margin: 8px 0 0; }
