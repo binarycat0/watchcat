@@ -1,6 +1,6 @@
 # Templates
 
-The Slack messages and AI agent prompts watchcat sends are
+The notifications and AI agent prompts watchcat sends are
 [Go templates](https://pkg.go.dev/text/template). Edit them on
 **Config › Templates** in the web UI, or as files.
 
@@ -10,7 +10,7 @@ The defaults are built into the binary. Your version of a template is a file
 in `~/.watchcat/templates/` (or `$WATCHCAT_HOME/templates/`):
 
 ```
-~/.watchcat/templates/slack_change.tmpl
+~/.watchcat/templates/notify_change.tmpl
 ~/.watchcat/templates/agent_footer.tmpl
 ```
 
@@ -29,8 +29,8 @@ so a typo never stops a message.
 
 | Name | Sent |
 |---|---|
-| `slack_change` | Slack message when a watched PR changes (kinds picked on Config › Notifications) |
-| `slack_rule` | Slack message when a [workflow rule](workflows.md) fires, in dry-run or on |
+| `notify_change` | notification when a watched PR changes (kinds picked on Config › Notifications) |
+| `notify_rule` | notification when a [workflow rule](workflows.md) fires, in dry-run or on |
 | `agent_ci_failed` | prompt for the agent when CI fails (`ci_failed` rule, `watchcat pr prompt-ci`) |
 | `agent_review_threads` | prompt for the agent about unresolved review conversations (`review_threads` rule) |
 | `agent_header` | shared start of both agent prompts |
@@ -58,31 +58,43 @@ Plus, per template:
 
 | Template | Variables |
 |---|---|
-| `slack_change` | `.Kind` (`ci_failed`, `ci_passed`, `conflict`, `conflict_resolved`, `changes_requested`, `approved`, `new_comments`, `pushed`, `merged`, `closed`), `.Message` (what changed), `.Checks` (newly failed checks) |
-| `slack_rule` | `.Rule` (`merge`, `review_threads`, `ci_failed`, `needs_review`), `.Action`, `.DryRun`, `.FailedChecks`, `.Unresolved` |
+| `notify_change` | `.Kind` (`ci_failed`, `ci_passed`, `conflict`, `conflict_resolved`, `changes_requested`, `approved`, `new_comments`, `pushed`, `merged`, `closed`), `.Message` (what changed), `.Checks` (newly failed checks) |
+| `notify_rule` | `.Rule` (`merge`, `review_threads`, `ci_failed`, `needs_review`), `.Action`, `.DryRun`, `.FailedChecks`, `.Unresolved` |
 | `agent_ci_failed` | `.FailedChecks`, `.Logs` (tail of each failed GitHub Actions run, may be empty) |
 | `agent_review_threads` | `.Threads`, each with `.N` (1, 2, ...), `.Path`, `.Line`, `.Location` (`path:line`), `.URL` and `.Comments` (`.Author`, `.Body`, `.URL`) |
 
 A check has `.Name` and `.URL` (empty if there's no link).
 
-In the Slack templates, text values (title, message, check names) are already
-escaped for Slack, so a PR title can't break the message.
+## Notifications and providers
+
+Notification templates don't depend on where the message goes. Two things
+make that work:
+
+- Links are written with `{{link URL TEXT}}`, and the provider decides how a
+  link looks. Slack, the only provider so far, gets `<URL|TEXT>`; the preview
+  shows what Slack receives.
+- The provider escapes text values (title, message, check names) before
+  rendering, so a PR title can't break the message's markup.
+
+The defaults use Unicode emoji (❌ ✅ 🚀), which work everywhere. Agent prompts
+are always plain text, with links written as `TEXT (URL)`.
 
 Functions, besides the
 [built-in ones](https://pkg.go.dev/text/template#hdr-Functions) (`eq`, `len`, `printf`, ...):
 
 | Function | Example |
 |---|---|
+| `link` | `{{link .PR.URL .PR.Ref}}`: a link, written the provider's way |
 | `names` | `{{names .FailedChecks}}` → `test, lint` |
 | `indent` | `{{indent "   " .Body}}` indents every line after the first |
 | `join`, `lower`, `upper`, `trim` | as in Go's `strings` package |
 
 ## Examples
 
-A shorter Slack message without the emoji:
+A shorter notification without the emoji:
 
 ```
-{{.PR.Ref}} {{.Message}}: {{.PR.URL}}
+{{link .PR.URL .PR.Ref}}: {{.Message}}
 ```
 
 Ask the agent to answer in another language, for every prompt
@@ -93,10 +105,10 @@ Rules: do not merge the PR, do not force-push, and do not resolve review
 conversations yourself. Reply in Spanish with a short summary.
 ```
 
-Different text per change kind (`slack_change`):
+Different text per change kind (`notify_change`):
 
 ```
-{{if eq .Kind "merged"}}:rocket: {{.PR.Ref}} is merged!{{else}}{{.PR.Ref}}: {{.Message}}{{end}}
+{{if eq .Kind "merged"}}🚀 {{.PR.Ref}} is merged!{{else}}{{.PR.Ref}}: {{.Message}}{{end}}
 ```
 
 Text/template trims whitespace with `{{-` and `-}}`; watchcat also drops

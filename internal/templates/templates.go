@@ -1,4 +1,4 @@
-// Package templates renders the Slack messages and AI agent prompts watchcat
+// Package templates renders the notifications and AI agent prompts watchcat
 // sends. Defaults are embedded in the binary; a file with the same name in
 // the templates directory (~/.watchcat/templates/<name>.tmpl) overrides one.
 // Deleting that file restores the default. Files are read on every render,
@@ -25,8 +25,8 @@ var defaults embed.FS
 
 // Template names.
 const (
-	SlackChange        = "slack_change"
-	SlackRule          = "slack_rule"
+	NotifyChange       = "notify_change"
+	NotifyRule         = "notify_rule"
 	AgentHeader        = "agent_header"
 	AgentFooter        = "agent_footer"
 	AgentCIFailed      = "agent_ci_failed"
@@ -35,7 +35,7 @@ const (
 
 // Groups, as shown in the UI.
 const (
-	GroupSlack = "slack"
+	GroupNotify = "notify"
 	GroupAgent = "agent"
 )
 
@@ -77,8 +77,8 @@ var agentVars = vars(
 // Defs lists every template, in the order the UI shows them.
 var Defs = []Def{
 	{
-		Name: SlackChange, Title: "PR change", Group: GroupSlack,
-		Description: "Slack message when a watched PR changes. Text values are already escaped for Slack.",
+		Name: NotifyChange, Title: "PR change", Group: GroupNotify,
+		Description: "Notification when a watched PR changes.",
 		Vars: vars(
 			Var{".Kind", "ci_failed, ci_passed, conflict, conflict_resolved, changes_requested, approved, new_comments, pushed, merged, closed"},
 			Var{".Message", "what changed, e.g. \"CI failed: test\""},
@@ -87,8 +87,8 @@ var Defs = []Def{
 		sample: func() any { return SampleChange },
 	},
 	{
-		Name: SlackRule, Title: "Workflow rule fired", Group: GroupSlack,
-		Description: "Slack message when a workflow rule fires (in dry-run or on). Text values are already escaped for Slack.",
+		Name: NotifyRule, Title: "Workflow rule fired", Group: GroupNotify,
+		Description: "Notification when a workflow rule fires (in dry-run or on).",
 		Vars: vars(
 			Var{".Rule", "merge, review_threads, ci_failed, needs_review"},
 			Var{".Action", "what the rule does, e.g. \"merge the PR\""},
@@ -142,6 +142,23 @@ func Lookup(name string) (Def, bool) {
 	return Def{}, false
 }
 
+// Format is how a notification provider writes markup. Templates call
+// {{link URL TEXT}} and the provider decides what a link looks like.
+// Providers also escape text values before rendering, so templates stay
+// provider-agnostic.
+type Format struct {
+	Name string
+	Link func(url, text string) string
+}
+
+// PlainText writes links as "text (url)". Agent prompts always use it.
+var PlainText = Format{Name: "text", Link: func(url, text string) string {
+	if url == "" {
+		return text
+	}
+	return text + " (" + url + ")"
+}}
+
 // ErrUnknown is returned for a template name that doesn't exist.
 var ErrUnknown = errors.New("unknown template")
 
@@ -162,6 +179,8 @@ var funcs = template.FuncMap{
 	"indent": func(pad, s string) string {
 		return strings.ReplaceAll(strings.TrimSpace(s), "\n", "\n"+pad)
 	},
+	// link is replaced per render by the provider's Format.Link.
+	"link":  PlainText.Link,
 	"join":  strings.Join,
 	"lower": strings.ToLower,
 	"upper": strings.ToUpper,
@@ -182,6 +201,17 @@ func Default(name string) string {
 type Set struct {
 	Dir string
 	Log *slog.Logger
+	// Notify is the notification provider's format, used for notification
+	// templates (including previews). Zero means PlainText.
+	Notify Format
+}
+
+// format returns the Format a template renders with.
+func (s *Set) format(d Def) Format {
+	if d.Group == GroupNotify && s != nil && s.Notify.Link != nil {
+		return s.Notify
+	}
+	return PlainText
 }
 
 func (s *Set) path(name string) string { return filepath.Join(s.Dir, name+".tmpl") }
@@ -226,12 +256,12 @@ func (src sources) with(name, text string) sources {
 }
 
 // render parses name (and the partials it uses) from src and executes it.
-func render(src sources, name string, data any) (string, error) {
+func render(src sources, name string, data any, f Format) (string, error) {
 	d, ok := Lookup(name)
 	if !ok {
 		return "", fmt.Errorf("%w %q", ErrUnknown, name)
 	}
-	t := template.New(name).Funcs(funcs).Option("missingkey=error")
+	t := template.New(name).Funcs(funcs).Funcs(template.FuncMap{"link": f.Link}).Option("missingkey=error")
 	for _, p := range d.Uses {
 		if _, err := t.New(p).Parse(trimSource(src(p))); err != nil {
 			return "", err
@@ -258,12 +288,22 @@ func trimSource(s string) string {
 // logs why and falls back to the defaults, so a broken file never stops a
 // message from going out.
 func (s *Set) Render(name string, data any) string {
-	out, err := render(s.current(), name, data)
+	d, ok := Lookup(name)
+	if !ok {
+		return fmt.Sprintf("watchcat: unknown template %s", name)
+	}
+	return s.RenderAs(s.format(d), name, data)
+}
+
+// RenderAs is Render with a given format: a notification provider renders
+// its messages with its own format.
+func (s *Set) RenderAs(f Format, name string, data any) string {
+	out, err := render(s.current(), name, data, f)
 	if err == nil {
 		return out
 	}
 	s.warn("template failed, using the default", name, err)
-	out, err = render(defaultSources, name, data)
+	out, err = render(defaultSources, name, data, f)
 	if err != nil {
 		// Defaults are tested against every data type; this is a bug.
 		return fmt.Sprintf("watchcat: template %s failed: %v", name, err)
@@ -324,7 +364,7 @@ func (s *Set) check(name, text string) error {
 		if d.Name != name && !contains(d.Uses, name) {
 			continue
 		}
-		if _, err := render(src, d.Name, d.sample()); err != nil {
+		if _, err := render(src, d.Name, d.sample(), s.format(d)); err != nil {
 			if d.Name != name {
 				return fmt.Errorf("%w: breaks %s: %v", ErrInvalid, d.Name, err)
 			}
@@ -343,7 +383,7 @@ func (s *Set) Preview(name, text string) (string, error) {
 	if err := s.check(name, text); err != nil {
 		return "", err
 	}
-	return render(s.current().with(name, text), d.Name, d.sample())
+	return render(s.current().with(name, text), d.Name, d.sample(), s.format(d))
 }
 
 // Save validates text and writes it as name's override. Saving the default

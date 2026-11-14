@@ -6,7 +6,7 @@ Everything lives in `~/.watchcat` (or `$WATCHCAT_HOME`), mode 0700:
 - `config.json`: settings, see below
 - `watchcat.db`: SQLite (PRs, history, task queue)
 - `logs/watchcat.log`: daemon output when run as a service
-- `templates/`: your versions of the Slack message and agent prompt templates, see [Templates](templates.md)
+- `templates/`: your versions of the notification and agent prompt templates, see [Templates](templates.md)
 
 ## config.json
 

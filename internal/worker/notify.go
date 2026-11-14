@@ -61,9 +61,18 @@ func Routers(rs ...Router) Router {
 	}
 }
 
-// FormatChange renders a change as Slack mrkdwn (the slack_change template).
+// SlackFormat writes links as Slack mrkdwn: <url|text>.
+var SlackFormat = templates.Format{Name: "slack", Link: func(url, text string) string {
+	if url == "" {
+		return text
+	}
+	return "<" + url + "|" + text + ">"
+}}
+
+// FormatChange renders a change notification (the notify_change template).
+// Text values are escaped for Slack, the only provider so far.
 func FormatChange(tpl *templates.Set, pr core.PR, snap core.Snapshot, c core.Change) string {
-	return tpl.Render(templates.SlackChange, templates.ChangeData{
+	return tpl.RenderAs(SlackFormat, templates.NotifyChange, templates.ChangeData{
 		PR: prData(pr, snap, true), Kind: c.Kind, Message: slackEscape(c.Message), Checks: checks(c.Checks, true),
 	})
 }

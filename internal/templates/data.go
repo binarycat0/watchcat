@@ -20,7 +20,7 @@ type Check struct {
 	URL  string
 }
 
-// ChangeData is the data of slack_change.
+// ChangeData is the data of notify_change.
 type ChangeData struct {
 	PR      PR
 	Kind    string
@@ -28,7 +28,7 @@ type ChangeData struct {
 	Checks  []Check
 }
 
-// RuleData is the data of slack_rule.
+// RuleData is the data of notify_rule.
 type RuleData struct {
 	PR           PR
 	Rule         string

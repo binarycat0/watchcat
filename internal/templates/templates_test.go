@@ -11,7 +11,7 @@ import (
 // Every default renders with its sample data, and every Def has a default.
 func TestDefaultsRender(t *testing.T) {
 	for _, d := range Defs {
-		out, err := render(defaultSources, d.Name, d.sample())
+		out, err := render(defaultSources, d.Name, d.sample(), PlainText)
 		if err != nil {
 			t.Fatalf("%s: %v", d.Name, err)
 		}
@@ -26,13 +26,22 @@ func TestDefaultsRender(t *testing.T) {
 }
 
 func TestDefaultOutput(t *testing.T) {
-	var s *Set // nil: defaults only
-	got := s.Render(SlackChange, SampleChange)
-	want := ":x: <https://github.com/acme/api/pull/42|acme/api#42> Add rate limiting to the public API\n" +
+	var s *Set // nil: defaults only, plain-text links
+	got := s.Render(NotifyChange, SampleChange)
+	want := "❌ acme/api#42 (https://github.com/acme/api/pull/42) Add rate limiting to the public API\n" +
 		"CI failed: test (ubuntu-latest), lint\n" +
-		"• <https://github.com/acme/api/actions/runs/1/job/2|test (ubuntu-latest)>\n• lint"
+		"• test (ubuntu-latest) (https://github.com/acme/api/actions/runs/1/job/2)\n• lint"
 	if got != want {
-		t.Fatalf("slack_change:\n%s\nwant:\n%s", got, want)
+		t.Fatalf("notify_change:\n%s\nwant:\n%s", got, want)
+	}
+	// The provider's format decides what a link looks like.
+	md := &Set{Notify: Format{Name: "md", Link: func(u, t string) string { return "[" + t + "](" + u + ")" }}}
+	if got := md.Render(NotifyRule, SampleRule); !strings.HasPrefix(got, "❌ [acme/api#42](https://github.com/acme/api/pull/42) ") {
+		t.Fatalf("notify_rule with markdown links: %q", got)
+	}
+	// Agent prompts are always plain text.
+	if got := md.Render(AgentCIFailed, SampleCIFailed); strings.Contains(got, "](") {
+		t.Fatalf("agent prompt used the notification format:\n%s", got)
 	}
 	got = s.Render(AgentReviewThreads, SampleReviewThreads)
 	for _, part := range []string{
@@ -86,7 +95,7 @@ func TestOverrideSaveRestore(t *testing.T) {
 	}
 
 	// Saving the default text doesn't create an override.
-	if i, _ := s.Save(SlackRule, Default(SlackRule)); i.Custom {
+	if i, _ := s.Save(NotifyRule, Default(NotifyRule)); i.Custom {
 		t.Fatal("saving the default created an override")
 	}
 	if _, err := s.Save("nope", "x"); !errors.Is(err, ErrUnknown) {
@@ -98,13 +107,13 @@ func TestOverrideSaveRestore(t *testing.T) {
 func TestBrokenFileFallsBack(t *testing.T) {
 	dir := t.TempDir()
 	s := &Set{Dir: dir}
-	if err := os.WriteFile(filepath.Join(dir, "slack_rule.tmpl"), []byte("{{.Oops}}"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "notify_rule.tmpl"), []byte("{{.Oops}}"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if out := s.Render(SlackRule, SampleRule); !strings.HasPrefix(out, ":x: <https://") {
+	if out := s.Render(NotifyRule, SampleRule); !strings.HasPrefix(out, "❌ acme/api#42") {
 		t.Fatalf("no fallback: %q", out)
 	}
-	i, _ := s.Get(SlackRule)
+	i, _ := s.Get(NotifyRule)
 	if !i.Custom || i.Error == "" {
 		t.Fatalf("broken file not flagged: %+v", i)
 	}
@@ -112,11 +121,11 @@ func TestBrokenFileFallsBack(t *testing.T) {
 
 func TestPreview(t *testing.T) {
 	s := &Set{Dir: t.TempDir()}
-	out, err := s.Preview(SlackChange, "{{.Kind}} {{.PR.Ref}} {{upper .PR.Repo}}")
+	out, err := s.Preview(NotifyChange, "{{.Kind}} {{.PR.Ref}} {{upper .PR.Repo}}")
 	if err != nil || out != "ci_failed acme/api#42 ACME/API" {
 		t.Fatalf("%q %v", out, err)
 	}
-	if _, err := s.Preview(SlackChange, "{{.Nope}}"); !errors.Is(err, ErrInvalid) {
+	if _, err := s.Preview(NotifyChange, "{{.Nope}}"); !errors.Is(err, ErrInvalid) {
 		t.Fatalf("%v", err)
 	}
 }

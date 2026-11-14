@@ -343,19 +343,19 @@ func TestTemplates(t *testing.T) {
 	if code != 200 || json.Unmarshal([]byte(body), &list) != nil || len(list) != len(templates.Defs) {
 		t.Fatalf("list: %d %s", code, body)
 	}
-	if code, body = do("POST", "/api/v1/templates/slack_change/preview", `{"text":"hi {{.PR.Ref}}"}`); code != 200 || !strings.Contains(body, "hi acme/api#42") {
+	if code, body = do("POST", "/api/v1/templates/notify_change/preview", `{"text":"hi {{.PR.Ref}}"}`); code != 200 || !strings.Contains(body, "hi acme/api#42") {
 		t.Fatalf("preview: %d %s", code, body)
 	}
-	if code, body = do("PUT", "/api/v1/templates/slack_change", `{"text":"{{.Bad}}"}`); code != 400 {
+	if code, body = do("PUT", "/api/v1/templates/notify_change", `{"text":"{{.Bad}}"}`); code != 400 {
 		t.Fatalf("bad save: %d %s", code, body)
 	}
-	if code, body = do("PUT", "/api/v1/templates/slack_change", `{"text":"hi {{.PR.Ref}}"}`); code != 200 || !strings.Contains(body, `"custom":true`) {
+	if code, body = do("PUT", "/api/v1/templates/notify_change", `{"text":"hi {{.PR.Ref}}"}`); code != 200 || !strings.Contains(body, `"custom":true`) {
 		t.Fatalf("save: %d %s", code, body)
 	}
-	if _, err := os.Stat(filepath.Join(dir, "slack_change.tmpl")); err != nil {
+	if _, err := os.Stat(filepath.Join(dir, "notify_change.tmpl")); err != nil {
 		t.Fatal(err)
 	}
-	if code, body = do("DELETE", "/api/v1/templates/slack_change", ""); code != 200 || !strings.Contains(body, `"custom":false`) {
+	if code, body = do("DELETE", "/api/v1/templates/notify_change", ""); code != 200 || !strings.Contains(body, `"custom":false`) {
 		t.Fatalf("restore: %d %s", code, body)
 	}
 	if code, _ = do("GET", "/api/v1/templates/nope", ""); code != 404 {

@@ -67,7 +67,7 @@ func cmdDaemon(e env, args []string) error {
 	cfg := live.Get
 	notifyOn := func() []string { return cfg().NotifyOn }
 	slackTarget := func() string { return cfg().Slack.Target() }
-	tpl := &templates.Set{Dir: e.paths.Templates, Log: log}
+	tpl := &templates.Set{Dir: e.paths.Templates, Log: log, Notify: worker.SlackFormat}
 	var routes []worker.Router
 	if e.tokenErr != nil {
 		log.Warn("secret store", "err", e.tokenErr)

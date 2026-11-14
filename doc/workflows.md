@@ -19,8 +19,8 @@ Each rule is `off`, `dry-run` (default) or `on`:
 
 Dry-run builds the prompt or command and stores it as the task result
 without running it. Actions re-fetch the PR first and skip if it changed.
-Every rule that fires also sends a Slack message. The message and the agent
-prompts can be changed; see [Templates](templates.md).
+Every rule that fires also sends a Slack message. The notification and the
+agent prompts can be changed; see [Templates](templates.md).
 
 ## Retriggering CI
 

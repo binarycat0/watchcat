@@ -122,7 +122,7 @@ func Default() Config {
 //	~/.watchcat/bin/watchcat     the binary (~/.local/bin/watchcat links here)
 //	~/.watchcat/config.json      settings, including the Slack token (0600)
 //	~/.watchcat/watchcat.db      SQLite: PRs, history, task queue
-//	~/.watchcat/templates/       edited Slack message and agent prompt templates
+//	~/.watchcat/templates/       edited notification and agent prompt templates
 //	~/.watchcat/logs/watchcat.log daemon output when run as a service
 type Paths struct {
 	Dir    string

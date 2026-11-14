@@ -151,9 +151,10 @@ func (w *Workflows) Evaluate(ctx context.Context, pr core.PR, s core.Snapshot) e
 	return nil
 }
 
-// FormatRule renders the Slack DM for a fired rule (the slack_rule template).
+// FormatRule renders the notification for a fired rule (the notify_rule
+// template).
 func FormatRule(tpl *templates.Set, pr core.PR, s core.Snapshot, r Rule, mode string) string {
-	return tpl.Render(templates.SlackRule, templates.RuleData{
+	return tpl.RenderAs(SlackFormat, templates.NotifyRule, templates.RuleData{
 		PR: prData(pr, s, true), Rule: r.Name, Action: slackEscape(r.Action), DryRun: mode == ModeDryRun,
 		FailedChecks: checks(s.FailedChecks, true), Unresolved: s.Unresolved,
 	})

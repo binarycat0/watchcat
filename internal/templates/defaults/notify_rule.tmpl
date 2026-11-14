@@ -1,13 +1,13 @@
 {{- /* Emoji for each workflow rule. */ -}}
 {{define "emoji"}}
-{{- if eq . "merge"}}:rocket:
-{{- else if eq . "review_threads"}}:speech_balloon:
-{{- else if eq . "ci_failed"}}:x:
-{{- else if eq . "needs_review"}}:eyes:
+{{- if eq . "merge"}}🚀
+{{- else if eq . "review_threads"}}💬
+{{- else if eq . "ci_failed"}}❌
+{{- else if eq . "needs_review"}}👀
 {{- end}}
 {{- end -}}
 
-{{template "emoji" .Rule}} <{{.PR.URL}}|{{.PR.Ref}}> {{.PR.Title}}
+{{template "emoji" .Rule}} {{link .PR.URL .PR.Ref}} {{.PR.Title}}
 {{if eq .Rule "merge"}}Ready to merge: CI green, approved, no open conversations.
 {{- else if eq .Rule "review_threads"}}Approved and green, but {{.Unresolved}} conversation(s) are unresolved.
 {{- else if eq .Rule "ci_failed"}}CI failed: {{names .FailedChecks}}.

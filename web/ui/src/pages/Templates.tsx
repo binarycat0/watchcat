@@ -6,7 +6,7 @@ import { Empty, SettingsLink, useToast } from '../components';
 import type { TemplateInfo } from '../types';
 
 const GROUPS: { key: TemplateInfo['group']; label: string }[] = [
-  { key: 'slack', label: 'Slack messages' },
+  { key: 'notify', label: 'Notifications' },
   { key: 'agent', label: 'Agent prompts' },
 ];
 
@@ -21,7 +21,7 @@ function useDebounced<T>(value: T, ms: number): T {
 }
 
 /**
- * Config > Templates: edit the Slack messages and agent prompts. Each
+ * Config > Templates: edit the notifications and agent prompts. Each
  * template saves on its own (to its own file), not with "Save config".
  */
 export function TemplatesTab() {
@@ -91,7 +91,7 @@ export function TemplatesTab() {
         <div className="tpl-head">
           <div>
             <h3>{cur.title} <span className="mono muted">{cur.name}</span></h3>
-            <p className="muted small">{cur.description}{cur.name === 'slack_change' && <> Which changes send one is set in <SettingsLink page="config" tab="notifications" />.</>}</p>
+            <p className="muted small">{cur.description}{cur.name === 'notify_change' && <> Which changes send one is set in <SettingsLink page="config" tab="notifications" />.</>}</p>
           </div>
           <div className="btns">
             <button type="button" disabled={!dirty || busy} onClick={() => edit(cur.text)}>Discard</button>
@@ -125,7 +125,7 @@ export function TemplatesTab() {
             <tbody>
               {cur.vars.map((v) => <tr key={v.name}><th className="mono">{v.name}</th><td>{v.desc}</td></tr>)}
               {cur.uses?.map((u) => <tr key={u}><th className="mono">{`{{template "${u}" .}}`}</th><td>includes the shared <button type="button" className="link" onClick={() => pick(u)}>{all.find((t) => t.name === u)?.title ?? u}</button></td></tr>)}
-              <tr><th className="mono">names, indent, join, lower, upper, trim</th><td>functions, e.g. <span className="mono">{'{{names .FailedChecks}}'}</span>, <span className="mono">{'{{indent "   " .Body}}'}</span></td></tr>
+              <tr><th className="mono">link, names, indent, join, lower, upper, trim</th><td>functions, e.g. <span className="mono">{'{{link .PR.URL .PR.Ref}}'}</span> (each notification provider writes links its own way), <span className="mono">{'{{names .FailedChecks}}'}</span>, <span className="mono">{'{{indent "   " .Body}}'}</span></td></tr>
             </tbody>
           </table>
           <p className="muted small">Go <a href="https://pkg.go.dev/text/template" target="_blank" rel="noreferrer">text/template</a> syntax. See the <a href="https://tools.binaryc.at/watchcat/templates/" target="_blank" rel="noreferrer">templates guide</a>.</p>
