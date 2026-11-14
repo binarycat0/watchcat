@@ -85,7 +85,6 @@ export interface Settings {
   notify_on: string[];
   slack_user_id: string;
   slack_channel: string;
-  github_host: string;
 }
 export interface SettingsResponse {
   settings: Settings;

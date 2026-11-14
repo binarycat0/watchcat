@@ -14,7 +14,6 @@ Everything lives in `~/.watchcat` (or `$WATCHCAT_HOME`), mode 0700:
 | `host`, `port` | where the API and web UI are served (default `127.0.0.1`, `7878`); loopback only, restart to apply |
 | `poll_interval` | how often each PR is checked, e.g. `"5m"` |
 | `tick_interval`, `workers` | planner tick and worker pool size |
-| `github_host` | host for short `owner/repo#123` refs (default `github.com`) |
 | `slack` | `user_id` or `channel`, see [Slack](#slack) |
 | `notify_on` | change kinds that send a message (default: all except `pushed`) |
 | `workflows`, `merge_method` | see [Workflows](workflows.md) |

@@ -56,7 +56,7 @@ func TestEndToEnd(t *testing.T) {
 		t.Fatal(err)
 	}
 	var apiErr *APIError
-	if _, err := cl.AddPR(ctx, "o/r#5"); !errors.As(err, &apiErr) || apiErr.Code != http.StatusConflict {
+	if _, err := cl.AddPR(ctx, "https://github.com/o/r/pull/5"); !errors.As(err, &apiErr) || apiErr.Code != http.StatusConflict {
 		t.Fatalf("duplicate add: %v", err)
 	}
 	if _, err := cl.AddPR(ctx, "nonsense"); !errors.As(err, &apiErr) || apiErr.Code != http.StatusBadRequest {
@@ -79,7 +79,7 @@ func TestEndToEnd(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 
-	id, err := cl.Resolve(ctx, "o/r#5")
+	id, err := cl.Resolve(ctx, "https://github.com/o/r/pull/5")
 	if err != nil || id != pr.ID {
 		t.Fatalf("resolve: %d %v", id, err)
 	}
@@ -174,7 +174,7 @@ func TestSettingsAndRules(t *testing.T) {
 		t.Fatalf("invalid mode should be rejected, got %d", code)
 	}
 	code, body = do("PUT", "/api/v1/settings",
-		`{"workflows":{"merge":"on"},"merge_method":"rebase","poll_interval":"10m","notify_on":["ci_failed"],"slack_user_id":"U1","github_host":"github.com"}`)
+		`{"workflows":{"merge":"on"},"merge_method":"rebase","poll_interval":"10m","notify_on":["ci_failed"],"slack_user_id":"U1"}`)
 	if code != 200 || live.Get().Workflows["merge"] != "on" || live.Get().PollInterval.Duration != 10*time.Minute {
 		t.Fatalf("PUT settings: %d %s", code, body)
 	}
@@ -221,11 +221,17 @@ func TestAddPRChecksSignedInHosts(t *testing.T) {
 	if !errors.As(err, &apiErr) || apiErr.Code != http.StatusBadRequest || !strings.Contains(err.Error(), "gh auth login --hostname other.corp") {
 		t.Fatalf("unknown host should be rejected with a hint: %v", err)
 	}
-	if id, err := cl.Resolve(ctx, "team/app#9"); err != nil || id != pr.ID {
-		t.Fatalf("short ref should find the GHE PR: %d %v", id, err)
+	if id, err := cl.Resolve(ctx, "https://ghe.corp/team/app/pull/9"); err != nil || id != pr.ID {
+		t.Fatalf("URL should find the GHE PR: %d %v", id, err)
 	}
-	if id, err := cl.Resolve(ctx, "ghe.corp/team/app#9"); err != nil || id != pr.ID {
-		t.Fatalf("host ref: %d %v", id, err)
+	if _, err := cl.Resolve(ctx, "https://github.com/team/app/pull/9"); err == nil {
+		t.Fatal("same owner/repo#N on another host must not match")
+	}
+	if _, err := cl.Resolve(ctx, "team/app#9"); !errors.Is(err, core.ErrBadRef) {
+		t.Fatalf("short refs are not accepted: %v", err)
+	}
+	if _, err = cl.AddPR(ctx, "team/app#9"); err == nil || !strings.Contains(err.Error(), "PR URL") {
+		t.Fatalf("adding a short ref should ask for a URL: %v", err)
 	}
 }
 

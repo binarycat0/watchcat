@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -44,7 +43,7 @@ const (
 	StatusError   = "error"
 )
 
-// DefaultHost is used when a ref doesn't name one.
+// DefaultHost is left out when a PR is shown as owner/repo#123.
 const DefaultHost = "github.com"
 
 // PRRef identifies a PR on a GitHub host. Every gh call takes one, so the
@@ -80,28 +79,14 @@ func (p PR) Ref() string { return p.Key().String() }
 
 func (p PR) URL() string { return p.Key().URL() }
 
-// owner/repo#N, or host/owner/repo#N where host contains a dot.
-var refRe = regexp.MustCompile(`^(?:([\w-]+(?:\.[\w-]+)+)/)?([\w.-]+)/([\w.-]+)#(\d+)$`)
+// ErrBadRef is returned for input that isn't a PR URL.
+var ErrBadRef = errors.New("expected a PR URL like https://github.com/owner/repo/pull/123")
 
-// ErrBadRef is returned for input that is neither a short ref nor a PR URL.
-var ErrBadRef = errors.New("expected owner/repo#123, host/owner/repo#123 or https://<host>/owner/repo/pull/123")
-
-// ParseRef accepts "owner/repo#123" (on defaultHost), "host/owner/repo#123",
-// or a PR URL on any host (github.com or GitHub Enterprise).
-// Go returns (value, error) pairs instead of raising exceptions.
-func ParseRef(s, defaultHost string) (PRRef, error) {
+// ParseRef accepts a PR URL on any host (github.com or GitHub Enterprise).
+// Only full URLs are accepted: they carry the host, so gh always talks to
+// the right one, even when it's signed in to several.
+func ParseRef(s string) (PRRef, error) {
 	s = strings.TrimSpace(s)
-	if defaultHost == "" {
-		defaultHost = DefaultHost
-	}
-	if m := refRe.FindStringSubmatch(s); m != nil {
-		n, _ := strconv.Atoi(m[4])
-		host := m[1]
-		if host == "" {
-			host = defaultHost
-		}
-		return PRRef{Host: strings.ToLower(host), Owner: m[2], Repo: m[3], Number: n}, nil
-	}
 	u, err := url.Parse(s)
 	if err != nil || u.Host == "" || (u.Scheme != "https" && u.Scheme != "http") {
 		return PRRef{}, ErrBadRef

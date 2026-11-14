@@ -1,6 +1,6 @@
 // Thin client for the daemon's /api/v1. Errors carry the server's message.
 import type {
-  AgentSession, CIRun, HealthReport, PR, PRDetail, Report, RuleInfo, Settings, SettingsResponse, Status, Task,
+  AgentSession, CIRun, Event, HealthReport, PR, PRDetail, Report, RuleInfo, Settings, SettingsResponse, Status, Task,
 } from './types';
 
 export class ApiError extends Error {
@@ -32,6 +32,8 @@ export const api = {
   retrigger: (id: number) => call<null>('POST', `/prs/${id}/retrigger`),
   setPaused: (id: number, paused: boolean) => call<null>('POST', `/prs/${id}/${paused ? 'pause' : 'resume'}`),
   rules: (id: number) => call<RuleInfo[]>('GET', `/prs/${id}/rules`),
+  events: (id: number, limit: number, offset: number) =>
+    call<Event[]>('GET', `/prs/${id}/events?limit=${limit}&offset=${offset}`),
   ciRuns: (id: number) => call<CIRun[]>('GET', `/prs/${id}/ci-runs`),
   bindAgent: (id: number, session: string) => call<null>('PUT', `/prs/${id}/agent`, { session, worktree: '' }),
   promptAgent: (id: number, prompt: string) =>

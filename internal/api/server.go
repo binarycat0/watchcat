@@ -129,7 +129,7 @@ func (s *Server) Handler(pid int) http.Handler {
 			writeJSON(w, http.StatusBadRequest, errorResponse{"invalid JSON body"})
 			return
 		}
-		ref, err := core.ParseRef(req.Ref, s.defaultHost())
+		ref, err := core.ParseRef(req.Ref)
 		if err != nil {
 			writeErr(w, err)
 			return
@@ -157,7 +157,7 @@ func (s *Server) Handler(pid int) http.Handler {
 		writeJSON(w, http.StatusCreated, pr)
 	})
 	mux.HandleFunc("GET /api/v1/prs/{id}", s.withPR(func(w http.ResponseWriter, r *http.Request, pr core.PR) {
-		evs, err := s.Store.Events(r.Context(), pr.ID, 50)
+		evs, err := s.Store.Events(r.Context(), pr.ID, 50, 0)
 		if err != nil {
 			writeErr(w, err)
 			return
@@ -311,6 +311,21 @@ func (s *Server) Handler(pid int) http.Handler {
 		rep.AddCIRuns(runs)
 		writeJSON(w, http.StatusOK, rep)
 	})
+	// Paged history for the PR page: newest first, limit defaults to 50.
+	mux.HandleFunc("GET /api/v1/prs/{id}/events", s.withPR(func(w http.ResponseWriter, r *http.Request, pr core.PR) {
+		q := r.URL.Query()
+		limit, _ := strconv.Atoi(q.Get("limit"))
+		if limit <= 0 || limit > 500 {
+			limit = 50
+		}
+		offset, _ := strconv.Atoi(q.Get("offset"))
+		evs, err := s.Store.Events(r.Context(), pr.ID, limit, offset)
+		if err != nil {
+			writeErr(w, err)
+			return
+		}
+		writeJSON(w, http.StatusOK, evs)
+	}))
 	mux.HandleFunc("GET /api/v1/prs/{id}/ci-runs", s.withPR(func(w http.ResponseWriter, r *http.Request, pr core.PR) {
 		runs, err := s.Store.CIRunsForPR(r.Context(), pr.ID)
 		if err != nil {
@@ -389,14 +404,6 @@ func (s *Server) ruleMode(rule string) string {
 		return m
 	}
 	return worker.ModeOff
-}
-
-// defaultHost is the host for short refs like owner/repo#123.
-func (s *Server) defaultHost() string {
-	if s.Live == nil {
-		return core.DefaultHost
-	}
-	return s.Live.Get().GitHubHost
 }
 
 // slackTarget is "" unless there is both a token and a recipient.

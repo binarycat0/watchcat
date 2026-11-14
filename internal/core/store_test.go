@@ -25,24 +25,21 @@ func TestParseRef(t *testing.T) {
 		want PRRef
 		ok   bool
 	}{
-		{"dremio/dremio#123", PRRef{"github.com", "dremio", "dremio", 123}, true},
+		{"dremio/dremio#123", PRRef{}, false},
 		{"https://github.com/a-b/c.d/pull/7", PRRef{"github.com", "a-b", "c.d", 7}, true},
 		{"https://github.com/a/b/pull/7/files", PRRef{"github.com", "a", "b", 7}, true},
 		{"https://github.tools.sap/org/repo/pull/42", PRRef{"github.tools.sap", "org", "repo", 42}, true},
-		{"github.tools.sap/org/repo#42", PRRef{"github.tools.sap", "org", "repo", 42}, true},
+		{"github.tools.sap/org/repo#42", PRRef{}, false},
 		{"https://GHE.Example.com/o/r/pull/1", PRRef{"ghe.example.com", "o", "r", 1}, true},
 		{"a/b", PRRef{}, false},
 		{"https://github.com/a/b/issues/7", PRRef{}, false},
 		{"ftp://github.com/a/b/pull/7", PRRef{}, false},
 	}
 	for _, c := range cases {
-		got, err := ParseRef(c.in, "")
+		got, err := ParseRef(c.in)
 		if (err == nil) != c.ok || got != c.want {
 			t.Errorf("ParseRef(%q) = %+v, %v", c.in, got, err)
 		}
-	}
-	if got, _ := ParseRef("o/r#1", "ghe.corp"); got.Host != "ghe.corp" {
-		t.Errorf("short ref should use the default host, got %+v", got)
 	}
 	ref := PRRef{"ghe.corp", "o", "r", 1}
 	if ref.String() != "ghe.corp/o/r#1" || ref.Slug() != "ghe.corp/o/r" || ref.URL() != "https://ghe.corp/o/r/pull/1" {
@@ -98,9 +95,12 @@ func TestStoreLifecycle(t *testing.T) {
 		t.Fatalf("unexpected PR after check: %+v", got)
 	}
 
-	evs, _ := s.Events(ctx, pr.ID, 10)
+	evs, _ := s.Events(ctx, pr.ID, 10, 0)
 	if len(evs) != 2 || evs[0].Kind != "status" {
 		t.Fatalf("expected added+status events, got %+v", evs)
+	}
+	if older, _ := s.Events(ctx, pr.ID, 1, 1); len(older) != 1 || older[0].ID != evs[1].ID {
+		t.Fatalf("offset 1 should return the older event, got %+v", older)
 	}
 
 	s.SetNextCheck(ctx, pr.ID, time.Now().Add(-time.Second))
@@ -115,7 +115,7 @@ func TestStoreLifecycle(t *testing.T) {
 	if err := s.RemovePR(ctx, pr.ID); !errors.Is(err, ErrNotFound) {
 		t.Fatalf("second remove: got %v", err)
 	}
-	if evs, _ = s.Events(ctx, pr.ID, 10); len(evs) != 0 {
+	if evs, _ = s.Events(ctx, pr.ID, 10, 0); len(evs) != 0 {
 		t.Fatal("events should cascade-delete with the PR")
 	}
 }

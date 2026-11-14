@@ -34,9 +34,9 @@ run. Link a PR to the session working on it:
 
 ```bash
 watchcat agent sessions                                   # open sessions and their worktrees
-watchcat pr bind owner/repo#123 --session ses_abc123
-watchcat pr prompt-ci owner/repo#123                      # send the CI-failure prompt now
-watchcat pr unbind owner/repo#123
+watchcat pr bind https://github.com/owner/repo/pull/123 --session ses_abc123
+watchcat pr prompt-ci https://github.com/owner/repo/pull/123   # send the CI-failure prompt now
+watchcat pr unbind https://github.com/owner/repo/pull/123
 ```
 
 or pick the session on the PR page, or let the agent do it through the

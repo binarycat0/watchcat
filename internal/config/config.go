@@ -39,9 +39,6 @@ type Config struct {
 	Workflows map[string]string `json:"workflows"`
 	// MergeMethod is used for merges and auto-merge: squash, merge or rebase.
 	MergeMethod string `json:"merge_method"`
-	// GitHubHost is assumed for short refs like owner/repo#123. URLs and
-	// host/owner/repo#123 refs carry their own host (e.g. GitHub Enterprise).
-	GitHubHost string `json:"github_host"`
 }
 
 // Slack holds bot settings. The token itself lives in the OS keychain
@@ -116,7 +113,6 @@ func Default() Config {
 			"merge": "dry-run", "review_threads": "dry-run", "ci_failed": "dry-run", "needs_review": "dry-run",
 		},
 		MergeMethod: "squash",
-		GitHubHost:  "github.com",
 	}
 }
 

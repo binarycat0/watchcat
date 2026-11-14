@@ -412,10 +412,10 @@ func (s *Store) AddEvent(ctx context.Context, prID int64, kind, message string) 
 }
 
 // Events returns a PR's history, newest first.
-func (s *Store) Events(ctx context.Context, prID int64, limit int) ([]Event, error) {
+func (s *Store) Events(ctx context.Context, prID int64, limit, offset int) ([]Event, error) {
 	rows, err := s.db.QueryContext(ctx,
-		`SELECT id, pr_id, kind, message, created_at FROM events WHERE pr_id = ? ORDER BY created_at DESC, id DESC LIMIT ?`,
-		prID, limit)
+		`SELECT id, pr_id, kind, message, created_at FROM events WHERE pr_id = ? ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?`,
+		prID, limit, max(offset, 0))
 	if err != nil {
 		return nil, err
 	}

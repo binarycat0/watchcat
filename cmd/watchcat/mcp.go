@@ -36,7 +36,7 @@ type mcpTools struct {
 }
 
 var (
-	prArg      = map[string]any{"type": "string", "description": "PR URL or owner/repo#123. Default: the PR of the current git branch."}
+	prArg      = map[string]any{"type": "string", "description": "PR URL, e.g. https://github.com/owner/repo/pull/123. Default: the PR of the current git branch."}
 	sessionArg = map[string]any{"type": "string", "description": "opencode session ID (ses_...). Default: the session working in this directory."}
 )
 
@@ -109,7 +109,7 @@ func (t *mcpTools) prRef(ctx context.Context, arg string) (string, error) {
 	if url := strings.TrimSpace(string(out)); err == nil && url != "" {
 		return url, nil
 	}
-	return "", fmt.Errorf("no PR found for the current branch in %s; pass pr (URL or owner/repo#123)", t.cwd)
+	return "", fmt.Errorf("no PR found for the current branch in %s; pass pr as a PR URL", t.cwd)
 }
 
 // watchedID resolves a PR argument (or the current branch's PR) to a watched PR's id.

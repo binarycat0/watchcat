@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export type Tone = 'ok' | 'warn' | 'err' | 'info' | 'idle';
 
@@ -183,6 +183,52 @@ export function Menu({ trigger, label, className, children }: {
         // deferred so the item's own click handler still runs first.
         <div className="menu-list" role="menu" onClickCapture={() => window.setTimeout(() => setOpen(false))}>{children}</div>
       )}
+    </div>
+  );
+}
+
+/**
+ * A list paged by the server (limit/offset). Fetches one extra row to know
+ * whether there's a next page. Goes back to page 1 when key changes.
+ */
+export function useServerPage<T>(key: unknown[], fetch: (limit: number, offset: number) => Promise<T[]>, pageSize = 20) {
+  // The page belongs to a key; a new key (filter) starts at page 1 without
+  // first fetching the old page number for it.
+  const keyStr = JSON.stringify(key);
+  const [at, setAt] = useState({ key: keyStr, page: 0 });
+  const page = at.key === keyStr ? at.page : 0;
+  const setPage = (n: number) => setAt({ key: keyStr, page: n });
+  const q = useQuery({
+    queryKey: [...key, 'page', page, pageSize],
+    queryFn: () => fetch(pageSize + 1, page * pageSize),
+    placeholderData: (prev) => prev,
+  });
+  const rows = q.data?.slice(0, pageSize);
+  const from = page * pageSize + 1;
+  return {
+    query: q,
+    rows,
+    pager: {
+      page, setPage,
+      hasNext: (q.data?.length ?? 0) > pageSize,
+      label: rows?.length ? `${from}–${from + rows.length - 1}` : '',
+    },
+  };
+}
+
+// ---- tabs ----
+
+export function Tabs<K extends string>({ tabs, active, onChange }: {
+  tabs: { key: K; label: ReactNode }[];
+  active: K;
+  onChange: (k: K) => void;
+}) {
+  return (
+    <div className="tabs" role="tablist">
+      {tabs.map((t) => (
+        <button key={t.key} type="button" role="tab" aria-selected={t.key === active}
+          className={t.key === active ? 'tab on' : 'tab'} onClick={() => onChange(t.key)}>{t.label}</button>
+      ))}
     </div>
   );
 }

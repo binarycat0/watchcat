@@ -64,7 +64,7 @@ func TestMCPWatchDetectsSession(t *testing.T) {
 		t.Fatalf("binding: %+v", pr)
 	}
 	// Calling again is fine (already watched) and keeps the link.
-	if _, err := tools.watchPR(ctx, args(map[string]string{"pr": "o/r#7"})); err != nil {
+	if _, err := tools.watchPR(ctx, args(map[string]string{"pr": "https://github.com/o/r/pull/7"})); err != nil {
 		t.Fatal(err)
 	}
 
@@ -74,11 +74,11 @@ func TestMCPWatchDetectsSession(t *testing.T) {
 	snap := core.Snapshot{Title: "Fix", State: "OPEN", HeadSHA: "abcdef12", CI: core.CIFailure,
 		FailedChecks: []core.Check{{Name: "unit", URL: "https://ci/1"}}, Unresolved: 2}
 	store.RecordCheck(ctx, pr.ID, core.CheckResult{Status: core.StatusCIFailed, Summary: "CI failed: unit", Snapshot: &snap}, time.Now(), time.Now())
-	if out, err := tools.prStatus(ctx, args(map[string]string{"pr": "o/r#7"})); err != nil ||
+	if out, err := tools.prStatus(ctx, args(map[string]string{"pr": "https://github.com/o/r/pull/7"})); err != nil ||
 		!strings.Contains(out, "failed check: unit https://ci/1") || !strings.Contains(out, "unresolved threads: 2") {
 		t.Fatalf("pr_status: %q %v", out, err)
 	}
-	if out, err := tools.unwatchPR(ctx, args(map[string]string{"pr": "o/r#7"})); err != nil || !strings.Contains(out, "paused") {
+	if out, err := tools.unwatchPR(ctx, args(map[string]string{"pr": "https://github.com/o/r/pull/7"})); err != nil || !strings.Contains(out, "paused") {
 		t.Fatalf("unwatch: %q %v", out, err)
 	}
 	if pr, _ = store.GetPR(ctx, pr.ID); pr.AgentSession != "" || !pr.Paused {
@@ -93,19 +93,19 @@ func TestMCPSessionAmbiguity(t *testing.T) {
 		{ID: "ses_b", Title: "b", Directory: wt},
 	}, wt)
 	ctx := context.Background()
-	_, err := tools.watchPR(ctx, args(map[string]string{"pr": "o/r#1"}))
+	_, err := tools.watchPR(ctx, args(map[string]string{"pr": "https://github.com/o/r/pull/1"}))
 	if err == nil || !strings.Contains(err.Error(), "several opencode sessions") {
 		t.Fatalf("two sessions in one worktree must ask for session_id: %v", err)
 	}
-	if _, err := tools.watchPR(ctx, args(map[string]string{"pr": "o/r#1", "session_id": "ses_b"})); err != nil {
+	if _, err := tools.watchPR(ctx, args(map[string]string{"pr": "https://github.com/o/r/pull/1", "session_id": "ses_b"})); err != nil {
 		t.Fatal(err)
 	}
 
 	lonely, _ := newMCPTest(t, nil, t.TempDir())
-	if _, err := lonely.watchPR(ctx, args(map[string]string{"pr": "o/r#1"})); err == nil || !strings.Contains(err.Error(), "no open opencode session") {
+	if _, err := lonely.watchPR(ctx, args(map[string]string{"pr": "https://github.com/o/r/pull/1"})); err == nil || !strings.Contains(err.Error(), "no open opencode session") {
 		t.Fatalf("no session: %v", err)
 	}
-	if _, err := lonely.prStatus(ctx, args(map[string]string{"pr": "o/r#99"})); err == nil || !strings.Contains(err.Error(), "call watch_pr first") {
+	if _, err := lonely.prStatus(ctx, args(map[string]string{"pr": "https://github.com/o/r/pull/99"})); err == nil || !strings.Contains(err.Error(), "call watch_pr first") {
 		t.Fatalf("unwatched PR: %v", err)
 	}
 }

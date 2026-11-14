@@ -43,7 +43,7 @@ watchcat service start
 ## Usage
 
 ```bash
-watchcat pr add owner/repo#123   # or a PR URL, on github.com or GitHub Enterprise
+watchcat pr add https://github.com/owner/repo/pull/123   # github.com or GitHub Enterprise
 watchcat pr list
 watchcat pr check <id|ref>       # check now
 watchcat status

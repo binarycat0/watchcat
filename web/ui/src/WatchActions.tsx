@@ -29,8 +29,16 @@ export function WatchActions({ p, variant, onRemoved }: {
   );
   if (variant === 'buttons') return <div className="btns">{actions}</div>;
   return (
-    <Menu label={`Watching actions for ${prRef(p)}`} className="menu-trigger" trigger={<>Watching <span aria-hidden="true">▾</span></>}>
+    <Menu label={`Actions for ${prRef(p)}`} className="icon-btn dots" trigger={<DotsIcon />}>
       {actions}
     </Menu>
+  );
+}
+
+function DotsIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor">
+      <circle cx="3" cy="8" r="1.5" /><circle cx="8" cy="8" r="1.5" /><circle cx="13" cy="8" r="1.5" />
+    </svg>
   );
 }

@@ -80,7 +80,7 @@ function AddForm() {
   return (
     <form onSubmit={(e) => { e.preventDefault(); if (ref.trim()) add.mutate(ref.trim()); }}>
       <input value={ref} onChange={(e) => setRef(e.target.value)} autoComplete="off" aria-label="PR to watch"
-        placeholder="PR URL (github.com or Enterprise) or owner/repo#123" />
+        placeholder="PR URL, e.g. https://github.com/owner/repo/pull/123 (github.com or Enterprise)" />
       <button className="primary" disabled={add.isPending}>Watch</button>
     </form>
   );

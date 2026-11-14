@@ -26,21 +26,21 @@ Usage:
   watchcat init                     create config and data directory
   watchcat daemon                   run the daemon in the foreground
   watchcat status                   show daemon status
-  watchcat pr add <ref>             watch a PR: URL (any GitHub host), owner/repo#123 or host/owner/repo#123
+  watchcat pr add <url>             watch a PR by its URL (github.com or GitHub Enterprise)
   watchcat pr list                  list watched PRs
-  watchcat pr show <id|ref>         show a PR and its history
-  watchcat pr remove <id|ref>       stop watching a PR
-  watchcat pr check <id|ref>        check a PR now
-  watchcat pr retrigger <id|ref>    re-run failed CI jobs
-  watchcat pr bind <id|ref> --session ses_... [--worktree /path]
+  watchcat pr show <id|url>         show a PR and its history
+  watchcat pr remove <id|url>       stop watching a PR
+  watchcat pr check <id|url>        check a PR now
+  watchcat pr retrigger <id|url>    re-run failed CI jobs
+  watchcat pr bind <id|url> --session ses_... [--worktree /path]
                                     link a PR to the opencode session working on it (unbind to remove)
   watchcat stats [--days N]         PR lifecycle stats: counts, time to merge, CI failures (p50/p95)
   watchcat mcp                      MCP server on stdio for AI agents (add to opencode's config)
   watchcat agent sessions           list open opencode sessions and their worktrees
-  watchcat pr prompt-ci|prompt-review <id|ref>
+  watchcat pr prompt-ci|prompt-review <id|url>
                                     send the CI-failure or review-threads prompt to the PR's session now
-  watchcat pr pause|resume <id|ref> pause or resume checks
-  watchcat tasks [--status S] [--pr id|ref]
+  watchcat pr pause|resume <id|url> pause or resume checks
+  watchcat tasks [--status S] [--pr id|url]
                                     list background tasks (queued/running/done/failed)
   watchcat slack test               send a test message with the configured bot
   watchcat secret set|delete <name>  store a secret in the OS keychain (prompted, never on the command line)

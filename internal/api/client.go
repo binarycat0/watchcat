@@ -195,15 +195,12 @@ func (c *Client) SlackTest(ctx context.Context) error {
 	return c.do(ctx, "POST", "/api/v1/slack/test", nil, nil)
 }
 
-// Resolve turns a CLI argument (numeric id, owner/repo#N, host/owner/repo#N
-// or a PR URL) into an id. A short ref without a host matches on any host, as
-// long as only one watched PR fits.
+// Resolve turns a CLI argument (numeric id or PR URL) into a watched PR's id.
 func (c *Client) Resolve(ctx context.Context, arg string) (int64, error) {
 	if id, err := strconv.ParseInt(arg, 10, 64); err == nil {
 		return id, nil
 	}
-	const noHost = "-"
-	ref, err := core.ParseRef(arg, noHost)
+	ref, err := core.ParseRef(arg)
 	if err != nil {
 		return 0, err
 	}
@@ -211,17 +208,10 @@ func (c *Client) Resolve(ctx context.Context, arg string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	var found []core.PR
 	for _, p := range prs {
-		if p.Owner == ref.Owner && p.Repo == ref.Repo && p.Number == ref.Number && (ref.Host == noHost || p.Host == ref.Host) {
-			found = append(found, p)
+		if p.Key() == ref {
+			return p.ID, nil
 		}
 	}
-	switch len(found) {
-	case 0:
-		return 0, fmt.Errorf("%s is not watched", arg)
-	case 1:
-		return found[0].ID, nil
-	}
-	return 0, fmt.Errorf("%s matches PRs on several hosts; use host/owner/repo#N or the id", arg)
+	return 0, fmt.Errorf("%s is not watched", arg)
 }
