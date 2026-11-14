@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { Empty, Menu, Pill, SettingsLink, useToast, type ConfigTab, type Tone } from '../components';
-import type { Settings, TemplateInfo } from '../types';
+import type { HealthReport, Settings, TemplateInfo } from '../types';
 
 const GROUPS: { key: TemplateInfo['group']; label: string }[] = [
   { key: 'notify', label: 'Notifications' },
@@ -27,6 +27,7 @@ function useDebounced<T>(value: T, ms: number): T {
 export function TemplatesTab() {
   const list = useQuery({ queryKey: ['templates'], queryFn: api.templates, refetchInterval: false });
   const settings = useQuery({ queryKey: ['settings'], queryFn: api.settings, refetchInterval: false });
+  const health = useQuery({ queryKey: ['health'], queryFn: () => api.health(), refetchInterval: 60000 });
   const [params, setParams] = useSearchParams();
   // Unsaved edits, per template, so switching templates doesn't lose them.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -85,7 +86,7 @@ export function TemplatesTab() {
                   {t.name in drafts && drafts[t.name] !== t.text && <span className="tab-dot warn" title="Unsaved changes" />}
                   {t.error ? <span className="tpl-flag bad">broken</span> : t.custom && <span className="tpl-flag">edited</span>}
                 </button>
-                <StatusBadge t={t} settings={settings.data?.settings} all={all} />
+                <StatusBadge t={t} settings={settings.data?.settings} health={health.data} all={all} />
               </div>
             ))}
           </div>
@@ -130,30 +131,35 @@ export function TemplatesTab() {
   );
 }
 
-type Status = { label: string; tone: Tone; used: string; tab: ConfigTab };
+type Status = { label: string; tone: Tone; used: string; tab: ConfigTab; setup?: string };
 
 const modeTone: Record<string, Tone> = { on: 'ok', 'dry-run': 'info', off: 'idle' };
 
-/** Whether a template is in use right now, from the live settings. */
-function status(t: TemplateInfo, s: Settings, all: TemplateInfo[]): Status {
-  const recipient = !!(s.slack_user_id || s.slack_channel);
+/**
+ * Whether a template is in use, from the live settings: notify_on for change
+ * notifications, rule modes for the rest. Whether the provider can deliver
+ * it (recipient, token) is reported separately as `setup`, so a template
+ * that is on doesn't show as off just because Slack isn't set up yet.
+ */
+function status(t: TemplateInfo, s: Settings, all: TemplateInfo[], h?: HealthReport): Status {
   const mode = (rule: string) => s.workflows[rule] || 'off';
   const anyRule = Object.values(s.workflows).some((m) => m === 'on' || m === 'dry-run');
+  const slack = h?.results.find((r) => r.name === 'slack');
+  const notifySetup = !(s.slack_user_id || s.slack_channel) ? 'Slack has no recipient set, so nothing is delivered.'
+    : slack && (slack.status === 'fail' || slack.status === 'warn') ? `Slack needs attention: ${slack.summary}`
+    : undefined;
   switch (t.name) {
     case 'notify_change': {
-      const on = recipient && s.notify_on.length > 0;
+      const on = s.notify_on.length > 0;
       return {
-        label: on ? 'on' : 'off', tone: on ? 'ok' : 'idle', tab: 'notifications',
-        used: !recipient ? 'Not sent: no notification recipient is set.'
-          : on ? `Sent for ${s.notify_on.length} kind(s) of PR change.` : 'Not sent: no PR changes are picked.',
+        label: on ? 'on' : 'off', tone: on ? 'ok' : 'idle', tab: 'notifications', setup: on ? notifySetup : undefined,
+        used: on ? `Used for ${s.notify_on.length} kind(s) of PR change.` : 'Not used: no PR changes are picked.',
       };
     }
     case 'notify_rule': {
-      const on = recipient && anyRule;
       return {
-        label: on ? 'on' : 'off', tone: on ? 'ok' : 'idle', tab: recipient ? 'rules' : 'notifications',
-        used: !recipient ? 'Not sent: no notification recipient is set.'
-          : on ? 'Sent when a workflow rule in dry-run or on fires.' : 'Not sent: every workflow rule is off.',
+        label: anyRule ? 'on' : 'off', tone: anyRule ? 'ok' : 'idle', tab: 'rules', setup: anyRule ? notifySetup : undefined,
+        used: anyRule ? 'Used when a workflow rule in dry-run or on fires.' : 'Not used: every workflow rule is off.',
       };
     }
     case 'agent_ci_failed':
@@ -176,14 +182,16 @@ function status(t: TemplateInfo, s: Settings, all: TemplateInfo[]): Status {
   }
 }
 
-function StatusBadge({ t, settings, all }: { t: TemplateInfo; settings?: Settings; all: TemplateInfo[] }) {
+function StatusBadge({ t, settings, health, all }: { t: TemplateInfo; settings?: Settings; health?: HealthReport; all: TemplateInfo[] }) {
   if (!settings) return null;
-  const st = status(t, settings, all);
+  const st = status(t, settings, all, health);
   return (
-    <Menu className="pill-btn" label={`${t.name}: ${st.label}`} trigger={<Pill status={st.label} tone={st.tone} />}>
+    <Menu className="pill-btn" label={`${t.name}: ${st.label}${st.setup ? ', provider not set up' : ''}`}
+      trigger={<><Pill status={st.label} tone={st.tone} />{st.setup && <Pill status="setup" label="not set up" tone="warn" />}</>}>
       <div className="tpl-pop small">
         <p>{st.used}</p>
         <p>Change it on <SettingsLink page="config" tab={st.tab} />.</p>
+        {st.setup && <p className="warn-text">{st.setup} Set it up on <SettingsLink page="config" tab="notifications" />; see <SettingsLink page="health" tab="notifications" />.</p>}
         <p className="muted">{t.custom ? 'Your version: ' : 'Built-in default; saving creates '}<span className="mono">{t.path}</span></p>
       </div>
     </Menu>
