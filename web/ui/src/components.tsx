@@ -18,6 +18,11 @@ const statusLabel: Record<string, string> = {
   unresolved_comments: 'unresolved comments',
 };
 
+/** Words for health statuses: the API keeps ok/warn/fail, people read these. */
+export const healthLabel: Record<string, string> = {
+  ok: 'healthy', warn: 'needs attention', fail: 'unhealthy', skip: 'not installed',
+};
+
 export function Pill({ status, label, tone }: { status: string; label?: string; tone?: Tone }) {
   return <span className={`pill ${tone ?? statusTone[status] ?? 'idle'}`}>{label ?? statusLabel[status] ?? status}</span>;
 }
@@ -219,7 +224,7 @@ export function useServerPage<T>(key: unknown[], fetch: (limit: number, offset: 
 // ---- tabs ----
 
 export function Tabs<K extends string>({ tabs, active, onChange }: {
-  tabs: { key: K; label: ReactNode }[];
+  tabs: { key: K; label: ReactNode; className?: string }[];
   active: K;
   onChange: (k: K) => void;
 }) {
@@ -227,7 +232,7 @@ export function Tabs<K extends string>({ tabs, active, onChange }: {
     <div className="tabs" role="tablist">
       {tabs.map((t) => (
         <button key={t.key} type="button" role="tab" aria-selected={t.key === active}
-          className={t.key === active ? 'tab on' : 'tab'} onClick={() => onChange(t.key)}>{t.label}</button>
+          className={['tab', t.key === active && 'on', t.className].filter(Boolean).join(' ')} onClick={() => onChange(t.key)}>{t.label}</button>
       ))}
     </div>
   );

@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ActionButton, Empty, Pill, Tabs } from '../components';
+import { ActionButton, Empty, Pill, Tabs, healthLabel } from '../components';
 import { ago } from '../format';
 import type { HealthDetail, HealthResult, HealthStatus } from '../types';
 
@@ -57,7 +57,7 @@ export function HealthPage() {
         <div>
           <div className="pr-title">
             <h1>Health</h1>
-            {h && <Pill status={h.status} />}
+            {h && <Pill status={h.status} label={healthLabel[h.status]} />}
           </div>
           {h && <p className="muted small">Same checks as <code>watchcat health</code>, as seen by the daemon, checked {ago(h.checked_at)}.</p>}
         </div>
@@ -71,7 +71,11 @@ export function HealthPage() {
             onChange={(t) => setParams(t === 'service' ? {} : { tab: t }, { replace: true })}
             tabs={TABS.map((t) => {
               const st = worst(byTab(t.key));
-              return { key: t.key, label: <>{t.label}{(st === 'fail' || st === 'warn') && <span className={`tab-dot ${st}`} aria-label={st} />}</> };
+              const bad = st === 'fail' || st === 'warn';
+              return {
+                key: t.key, className: bad ? st : undefined,
+                label: <span title={bad ? healthLabel[st] : undefined}>{t.label}{bad && <span className="sr-only"> ({healthLabel[st]})</span>}</span>,
+              };
             })}
           />
           <div className="tab-panel" role="tabpanel">
@@ -87,7 +91,7 @@ function Check({ r }: { r: HealthResult }) {
   return (
     <section className={`health-card ${r.status}`}>
       <div className="health-card-head">
-        <Pill status={r.status} />
+        <Pill status={r.status} label={healthLabel[r.status]} />
         <strong>{r.title}</strong>
         {r.version && <span className="muted small mono">{r.version}</span>}
         <span className="muted small">{r.required ? 'required' : 'optional'}</span>
