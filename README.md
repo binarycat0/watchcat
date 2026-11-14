@@ -82,7 +82,7 @@ More:
 
 - `go` 1.26+
 - `node` 20+ and `npm` (web UI)
-- `docker` (docs site)
+- `docker` or `podman` (docs site)
 
 ## Install
 
@@ -93,7 +93,7 @@ make build       # UI + bin/watchcat
 make build-go    # binary only, no Node needed
 WATCHCAT_HOME=/tmp/wd ./bin/watchcat daemon   # isolated dev instance
 cd web/ui && npm ci && npm run dev            # UI hot reload on :5173, API proxied to :7878 (WATCHCAT_API overrides)
-make docs-serve  # docs site on :8000 (Docker)
+make docs-serve  # docs site on :8000 (docker, or podman if docker is missing; CONTAINER=podman forces it)
 ```
 
 ### Releasing
