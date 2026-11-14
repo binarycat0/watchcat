@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { api } from './api';
-import { Menu } from './components';
+import { Menu, healthLabel } from './components';
 
 const REPO_URL = 'https://github.com/binarycat0/watchcat';
 
@@ -64,11 +64,11 @@ function SettingsMenu() {
       className={`icon-btn${active ? ' active' : ''}`}
       trigger={<>
         <GearIcon />
-        {hs && hs !== 'ok' && <span className={`menu-dot ${hs}`} aria-hidden="true" />}
+        {hs && hs !== 'ok' && <span className={`menu-dot ${hs}`} title={healthLabel[hs]} aria-hidden="true" />}
       </>}
     >
       <NavLink to="/health" role="menuitem">
-        Health <span className={`badge ${hs ?? ''}`}>{hs ?? '?'}</span>
+        Health <span className={`badge ${hs ?? ''}`}>{hs ? healthLabel[hs] : '?'}</span>
       </NavLink>
       <NavLink to="/config" role="menuitem">Config</NavLink>
     </Menu>

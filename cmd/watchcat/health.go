@@ -147,12 +147,25 @@ func cmdHealth(e env, args []string) error {
 		enc.SetIndent("", "  ")
 		return enc.Encode(rep)
 	}
-	fmt.Printf("health: %s (checked from %s)\n\n", rep.Status, source)
+	fmt.Printf("health: %s (checked from %s)\n\n", overallLabel(rep.Status), source)
 	printReport(rep)
 	if rep.Status == health.Fail {
 		return fmt.Errorf("required checks failed")
 	}
 	return nil
+}
+
+// overallLabel words the overall status for people; JSON keeps ok/warn/fail.
+func overallLabel(s health.Status) string {
+	switch s {
+	case health.OK:
+		return "healthy"
+	case health.Warn:
+		return "needs attention"
+	case health.Fail:
+		return "unhealthy"
+	}
+	return string(s)
 }
 
 func printReport(rep health.Report) {
