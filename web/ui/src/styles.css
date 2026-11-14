@@ -202,7 +202,6 @@ h3 { font-size: 14px; margin: 16px 0 8px; }
 .tab.on { color: var(--fg); font-weight: 600; background: var(--bg); border-color: var(--line); }
 .tab-note { font-weight: 400; color: var(--muted); font-size: 12px; }
 .tab-panel { padding-top: 12px; }
-.save-bar { border-top: 1px solid var(--line); padding-top: 12px; margin-top: 20px; }
 .tab-panel > h3:first-child { margin-top: 4px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 8px; }
 .section-head h2 { margin: 0; }

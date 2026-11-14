@@ -41,9 +41,15 @@ export function ConfigPage() {
 
   return (
     <>
-      <h1>Config</h1>
-      <p className="muted">Saved to <span className="mono">{d.config_path}</span> and applied right away; no restart needed.</p>
-      <form className="tab-block" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
+      <div className="header-row">
+        <div>
+          <h1>Config</h1>
+          <p className="muted">Saved to <span className="mono">{d.config_path}</span> and applied right away; no restart needed.</p>
+        </div>
+        {/* Lives outside the form, tied to it by id; saves every tab. */}
+        <button type="submit" form="config-form" className="primary" disabled={save.isPending} title="Saves all tabs">Save config</button>
+      </div>
+      <form id="config-form" className="tab-block" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
         <Tabs<ConfigTab> tabs={tabs} active={tab} onChange={(t) => setParams(t === 'schedule' ? {} : { tab: t }, { replace: true })} />
         <div className="tab-panel" role="tabpanel">
           {tab === 'schedule' && (<>
@@ -106,12 +112,6 @@ export function ConfigPage() {
 
           {tab === 'templates' && <Empty>Message and prompt templates are coming in the next iteration.</Empty>}
         </div>
-        {tab !== 'templates' && (
-          <div className="toolbar save-bar">
-            <button className="primary" disabled={save.isPending}>Save config</button>
-            <span className="muted small">Saves all tabs.</span>
-          </div>
-        )}
       </form>
     </>
   );
