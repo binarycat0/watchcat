@@ -119,19 +119,19 @@ func TestSlackBot(t *testing.T) {
 	if r = (SlackBot{Bot: bot("good"), Channel: "C1"}).Run(context.Background()); r.Status != Fail || !strings.Contains(r.Summary, "chat:write") {
 		t.Fatalf("missing scope should fail: %+v", r)
 	}
-	if r = (SlackBot{}).Run(context.Background()); r.Status != Fail {
+	// Nothing set: both rows are still listed, each saying what's missing.
+	r = SlackBot{}.Run(context.Background())
+	if r.Status != Fail || r.Summary != "bot token not set; recipient not set" {
 		t.Fatalf("no token should fail: %+v", r)
 	}
-}
-
-func TestSlackCLI(t *testing.T) {
-	if r := (SlackCLI{Exec: fakeExec{}}).Run(context.Background()); r.Status != Skip {
-		t.Fatalf("%+v", r)
+	if len(r.Details) != 2 || r.Details[0].Label != "bot token" || r.Details[1].Label != "recipient" ||
+		r.Details[0].Status != Fail || r.Details[1].Status != Fail {
+		t.Fatalf("want bot token and recipient rows: %+v", r.Details)
 	}
-	ex := fakeExec{installed: map[string]bool{"slack": true}, out: map[string]string{
-		"slack version": "Using slack v3.1.0", "slack auth list": "dremio (Team ID: T1)\nUser ID: U1\n"}}
-	if r := (SlackCLI{Exec: ex}).Run(context.Background()); r.Status != OK || len(r.Details) != 2 {
-		t.Fatalf("%+v", r)
+	scopes = "chat:write"
+	r = SlackBot{Bot: bot("good"), UserID: "U9", Channel: "C1", TokenSource: "keychain"}.Run(context.Background())
+	if r.Status != OK || r.Details[0].Value != "set (keychain), valid" || !strings.Contains(r.Details[1].Value, "U9") {
+		t.Fatalf("user_id should win over channel: %+v", r)
 	}
 }
 

@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ActionButton, Empty, Tabs, useToast } from '../components';
+import { ActionButton, CONFIG_TABS, Empty, SettingsLink, Tabs, useToast, type ConfigTab } from '../components';
 import type { Settings } from '../types';
 
 /** Comparable form of the settings; checkbox order doesn't count as a change. */
 const canon = (s: Settings) => JSON.stringify({ ...s, notify_on: [...s.notify_on].sort() });
 
-type ConfigTab = 'schedule' | 'rules' | 'notifications' | 'templates';
-const TABS: ConfigTab[] = ['schedule', 'rules', 'notifications', 'templates'];
+const TABS = Object.keys(CONFIG_TABS) as ConfigTab[];
 
 export function ConfigPage() {
   // Settings change rarely; don't poll, so the form is never overwritten mid-edit.
@@ -36,12 +35,7 @@ export function ConfigPage() {
   const dirty = canon(form) !== canon(d.settings);
   const secrets = (health.data?.results.find((r) => r.name === 'setup')?.details ?? []).filter((x) => x.label.startsWith('secret '));
 
-  const tabs: { key: ConfigTab; label: string }[] = [
-    { key: 'schedule', label: 'Schedule' },
-    { key: 'rules', label: 'Workflow rules' },
-    { key: 'notifications', label: 'Notifications' },
-    { key: 'templates', label: 'Templates' },
-  ];
+  const tabs = TABS.map((key) => ({ key, label: CONFIG_TABS[key] }));
 
   return (
     <>
@@ -61,7 +55,7 @@ export function ConfigPage() {
             <div className="form-grid">
               <label>Check every <input value={form.poll_interval} onChange={(e) => set({ poll_interval: e.target.value })} placeholder="5m" /></label>
             </div>
-            <p className="muted small">How often each watched PR is checked. PRs are added by URL, and watchcat only accepts hosts gh is signed in to; see <Link to="/health">Health</Link>.</p>
+            <p className="muted small">How often each watched PR is checked. PRs are added by URL, and watchcat only accepts hosts gh is signed in to; see <SettingsLink page="health" tab="vcs" />.</p>
           </>)}
 
           {tab === 'rules' && (<>
