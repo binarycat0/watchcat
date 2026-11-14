@@ -1,9 +1,34 @@
 # Contributing
 
-watchcat lives on GitHub at
-[binarycat0/watchcat](https://github.com/binarycat0/watchcat). This section
-covers building and testing it, the docs site and releases;
-[How it works](architecture.md) explains the internals.
+This section covers the repository, building and testing, the docs site and
+releases. [How it works](architecture.md) explains the internals and the code
+layout.
+
+## Repository
+
+- Source: [github.com/binarycat0/watchcat](https://github.com/binarycat0/watchcat), default branch `main`
+- Bugs and ideas: [Issues](https://github.com/binarycat0/watchcat/issues)
+- Releases: [Releases](https://github.com/binarycat0/watchcat/releases)
+- Docs site: [tools.binaryc.at/watchcat](https://tools.binaryc.at/watchcat/)
+
+```bash
+git clone https://github.com/binarycat0/watchcat.git
+cd watchcat
+make test
+```
+
+Work on a branch and open a pull request against `main`. Run `make test`
+before pushing, and `make docs` if you changed `README.md`, `doc/` or
+`mkdocs.yml`.
+
+| Path | |
+|---|---|
+| `cmd/watchcat/` | CLI entry point and subcommands |
+| `internal/` | daemon, store, providers, API; see [How it works](architecture.md#code-layout) |
+| `web/ui/` | web UI (React + TypeScript) |
+| `doc/`, `mkdocs.yml`, `utils/mkdocs/` | this docs site |
+| `install.sh` | the curl installer, also published on the docs site |
+| `.github/workflows/` | CI, see below |
 
 ## Prerequisites
 
@@ -43,5 +68,12 @@ Pages.
 
 Push a `v*` tag, or run the **Release** workflow on `main` from the Actions
 tab with a version such as `v0.2.0` (and optional notes). Either way it builds
-the binaries and publishes the GitHub release. The **Build** workflow builds
-the binaries on demand without releasing.
+the binaries and publishes the GitHub release.
+
+## CI workflows
+
+| Workflow | Runs on | Does |
+|---|---|---|
+| Build | manual | builds the binaries on Linux and macOS |
+| Release | `v*` tag, or manual with a version | builds darwin/linux amd64 and arm64 binaries and publishes the GitHub release |
+| Docs | push to `main` touching the docs, or manual | strict docs build, deploy to GitHub Pages |
