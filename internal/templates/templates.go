@@ -36,7 +36,7 @@ const (
 // Groups, as shown in the UI.
 const (
 	GroupNotify = "notify"
-	GroupAgent = "agent"
+	GroupAgent  = "agent"
 )
 
 // Var documents one value a template can use.
