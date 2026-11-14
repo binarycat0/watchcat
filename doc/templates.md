@@ -70,9 +70,10 @@ A check has `.Name` and `.URL` (empty if there's no link).
 Notification templates don't depend on where the message goes. Two things
 make that work:
 
-- Links are written with `{{link URL TEXT}}`, and the provider decides how a
-  link looks. Slack, the only provider so far, gets `<URL|TEXT>`; the preview
-  shows what Slack receives.
+- Links are written with `{{link URL TEXT}}`, and the notification provider
+  decides how a link looks (see its section in
+  [Configuration](configuration.md#supported-stack)); the preview shows
+  exactly what the provider receives.
 - The provider escapes text values (title, message, check names) before
   rendering, so a PR title can't break the message's markup.
 

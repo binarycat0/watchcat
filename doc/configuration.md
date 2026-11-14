@@ -21,7 +21,8 @@ Everything lives in `~/.watchcat` (or `$WATCHCAT_HOME`), mode 0700:
 | `slack` | notification settings: `user_id` or `channel`, see [Notifications](#notifications-slack) |
 
 Settings that belong to one provider live under that provider's key, so
-another provider can get its own section later.
+another provider can get its own section later. The provider sections below
+cover what each one needs.
 
 Most of these can also be changed on the Config page, which applies them
 without a restart.
@@ -55,7 +56,9 @@ The merge method used by the `merge` and `needs_review` (auto-merge) rules:
 "github": { "merge_method": "squash" }
 ```
 
-`squash`, `merge` or `rebase`.
+`squash`, `merge` or `rebase`. The `merge` rule runs
+`gh pr merge --<method> --match-head-commit <sha>`, `needs_review` runs
+`gh pr merge --auto`, and retriggering CI runs `gh run rerun --failed`.
 
 ## Notifications (Slack)
 
@@ -74,14 +77,22 @@ bot was invited to:
 "slack": { "user_id": "U0123456789" }
 ```
 
-`notify_on` picks which PR changes send a message.
+Links in notifications are written as `<URL|TEXT>`.
 
 ## AI agent (opencode)
 
-Workflow prompts (CI failures, review threads) go to the opencode session
-bound to each PR, with `watchcat pr bind` or the agent's own `watch_pr` MCP
-call. There is nothing to configure yet; see [Workflows](workflows.md),
-[MCP server](mcp.md) and [Templates](templates.md).
+watchcat talks to opencode through `opencode api`, so nothing extra needs to
+run, and there is nothing to configure yet. Session IDs look like `ses_...`.
+To let opencode link its own PRs, add the [MCP server](mcp.md) to its config
+(`~/.config/opencode/opencode.json` or a repo's `opencode.json`):
+
+```json
+{
+  "mcp": {
+    "watchcat": { "type": "local", "command": ["watchcat", "mcp"], "enabled": true }
+  }
+}
+```
 
 ## Secrets
 
@@ -110,6 +121,6 @@ exits non-zero when a required check fails.
 | Check | Required | Checks |
 |---|---|---|
 | Setup | yes | config file, database, binary and symlink, `PATH`, service, daemon, where each secret comes from (masked) |
-| gh | yes | version, signed-in hosts and scopes (`repo`), access to each watched repo |
-| Slack bot | yes | bot token (set, accepted by `auth.test`, `chat:write` scope) and recipient (`slack.user_id` or `slack.channel`), each listed whether set or not |
-| opencode | no | version |
+| Version control (gh) | yes | version, signed-in hosts and scopes (`repo`), access to each watched repo |
+| Notifications (Slack bot) | yes | bot token (set, accepted by `auth.test`, `chat:write` scope) and recipient (`slack.user_id` or `slack.channel`), each listed whether set or not |
+| AI agent (opencode) | no | version |
