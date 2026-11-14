@@ -66,15 +66,6 @@ watchcat                         # all commands
 
 The web UI is at http://127.0.0.1:7878.
 
-More:
-
-- [Configuration](doc/configuration/index.md): `config.json`, providers, secrets, health checks
-- [Templates](doc/configuration/templates.md): notification and agent prompt text
-- [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, agent hand-off
-- [Web UI](doc/web-ui.md)
-- [HTTP API](doc/api.md)
-- [MCP server](doc/mcp.md): let agents link and check their own PRs
-
 ## Development
 
 ### Prerequisites
