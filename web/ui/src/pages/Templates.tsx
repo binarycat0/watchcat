@@ -78,11 +78,15 @@ export function TemplatesTab() {
           <div key={g.key}>
             <div className="tpl-group muted small">{g.label}</div>
             {all.filter((t) => t.group === g.key).map((t) => (
-              <button key={t.name} type="button" className={'tpl-item' + (t.name === cur.name ? ' on' : '')}
-                aria-current={t.name === cur.name} onClick={() => pick(t.name)}>
-                <span>{t.title}{t.name in drafts && drafts[t.name] !== t.text && <span className="tab-dot warn" title="Unsaved changes" />}</span>
-                {t.error ? <span className="badge fail">broken</span> : t.custom && <span className="badge ok">edited</span>}
-              </button>
+              // A row, not one button: the status badge is its own button (popover).
+              <div key={t.name} className={'tpl-item' + (t.name === cur.name ? ' on' : '')}>
+                <button type="button" className="tpl-pick" aria-current={t.name === cur.name} onClick={() => pick(t.name)}>
+                  {t.title}
+                  {t.name in drafts && drafts[t.name] !== t.text && <span className="tab-dot warn" title="Unsaved changes" />}
+                  {t.error ? <span className="tpl-flag bad">broken</span> : t.custom && <span className="tpl-flag">edited</span>}
+                </button>
+                <StatusBadge t={t} settings={settings.data?.settings} all={all} />
+              </div>
             ))}
           </div>
         ))}
@@ -99,10 +103,7 @@ export function TemplatesTab() {
               onClick={() => save.mutate()}><IconSave /></IconButton>
           </div>
         </div>
-        <div className="tpl-sub">
-          <StatusBadge t={cur} settings={settings.data?.settings} all={all} />
-          <span className="muted small">{cur.description}</span>
-        </div>
+        <p className="tpl-sub muted small">{cur.description}</p>
         {cur.error && !dirty && <p className="bad small">The saved file doesn't work, so watchcat uses the default: {cur.error}</p>}
 
         <textarea className="tpl-text mono" aria-label={`${cur.title} template`} spellCheck={false}
