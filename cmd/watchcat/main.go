@@ -26,7 +26,7 @@ Usage:
   watchcat init                     create config and data directory
   watchcat daemon                   run the daemon in the foreground
   watchcat status                   show daemon status
-  watchcat pr add <url>             watch a PR by its URL (github.com or GitHub Enterprise)
+  watchcat pr add <url>             watch a PR by its URL
   watchcat pr list                  list watched PRs
   watchcat pr show <id|url>         show a PR and its history
   watchcat pr remove <id|url>       stop watching a PR

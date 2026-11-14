@@ -45,7 +45,7 @@ func (f fakeExec) Output(ctx context.Context, name string, args ...string) ([]by
 const authOK = `{"hosts":{"github.com":[
  {"state":"success","active":true,"host":"github.com","login":"me-work","tokenSource":"keyring","scopes":"read:org, repo"},
  {"state":"failed","active":false,"host":"github.com","login":"me-old","error":"token expired"}],
- "ghe.corp":[{"state":"success","active":true,"host":"ghe.corp","login":"I123","tokenSource":"keyring","scopes":"repo"}]}}`
+ "git.corp":[{"state":"success","active":true,"host":"git.corp","login":"I123","tokenSource":"keyring","scopes":"repo"}]}}`
 
 func TestGH(t *testing.T) {
 	ex := fakeExec{
@@ -54,17 +54,17 @@ func TestGH(t *testing.T) {
 			"gh --version":                                     "gh version 2.92.0 (2026-04-28)\nhttps://...",
 			"gh auth status":                                   authOK,
 			"gh api --hostname github.com user/orgs":           "dremio\napache\n",
-			"gh api --hostname ghe.corp user/orgs":             "corp\n",
+			"gh api --hostname git.corp user/orgs":             "corp\n",
 			"gh api --hostname github.com repos/dremio/dremio": "admin,pull,push",
-			"gh api --hostname ghe.corp repos/corp/app":        "pull,push",
+			"gh api --hostname git.corp repos/corp/app":        "pull,push",
 		},
 		errs: map[string]string{"gh api --hostname github.com repos/secret/repo": "exit status 1: HTTP 404: Not Found"},
 	}
-	r := GH{Exec: ex, Repos: []string{"github.com/dremio/dremio", "github.com/dremio/dremio", "ghe.corp/corp/app"}}.Run(context.Background())
-	if r.Status != OK || r.Version != "2.92.0 (2026-04-28)" || !strings.Contains(r.Summary, "signed in to ghe.corp, github.com") {
+	r := GH{Exec: ex, Repos: []string{"github.com/dremio/dremio", "github.com/dremio/dremio", "git.corp/corp/app"}}.Run(context.Background())
+	if r.Status != OK || r.Version != "2.92.0 (2026-04-28)" || !strings.Contains(r.Summary, "signed in to git.corp, github.com") {
 		t.Fatalf("%+v", r)
 	}
-	if !hasDetail(r, "account ghe.corp", OK) || !hasDetail(r, "account github.com", Fail) || !hasDetail(r, "repo ghe.corp/corp/app", OK) {
+	if !hasDetail(r, "account git.corp", OK) || !hasDetail(r, "account github.com", Fail) || !hasDetail(r, "repo git.corp/corp/app", OK) {
 		t.Fatalf("details: %+v", r.Details)
 	}
 

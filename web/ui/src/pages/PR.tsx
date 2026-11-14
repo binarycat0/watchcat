@@ -115,7 +115,7 @@ function PRTasks({ id }: { id: number }) {
   </>);
 }
 
-/** The PR's own state on GitHub: open, draft, merged or closed. */
+/** The PR's own state: open, draft, merged or closed. */
 function StatePill({ s, fallback }: { s?: Snapshot; fallback: string }) {
   if (!s) return <Pill status={fallback} />;
   if (s.state === 'OPEN') return s.draft ? <Pill status="idle" tone="idle" label="draft" /> : <Pill status="open" />;

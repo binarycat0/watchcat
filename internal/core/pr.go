@@ -17,7 +17,7 @@ import (
 // wire format used by the API.
 type PR struct {
 	ID          int64      `json:"id"`
-	Host        string     `json:"host"` // github.com or a GitHub Enterprise host
+	Host        string     `json:"host"` // from the PR URL
 	Owner       string     `json:"owner"`
 	Repo        string     `json:"repo"`
 	Number      int        `json:"number"`
@@ -43,11 +43,8 @@ const (
 	StatusError   = "error"
 )
 
-// DefaultHost is left out when a PR is shown as owner/repo#123.
-const DefaultHost = "github.com"
-
-// PRRef identifies a PR on a GitHub host. Every gh call takes one, so the
-// host (github.com or GitHub Enterprise) can't get lost along the way.
+// PRRef identifies a PR on its host. Every gh call takes one, so the host
+// can't get lost along the way.
 type PRRef struct {
 	Host   string `json:"host"`
 	Owner  string `json:"owner"`
@@ -58,14 +55,8 @@ type PRRef struct {
 // Slug is HOST/OWNER/REPO, the form `gh -R` accepts for any host.
 func (r PRRef) Slug() string { return r.Host + "/" + r.Owner + "/" + r.Repo }
 
-// String is "owner/repo#123" on github.com, "host/owner/repo#123" elsewhere.
-func (r PRRef) String() string {
-	s := fmt.Sprintf("%s/%s#%d", r.Owner, r.Repo, r.Number)
-	if r.Host != DefaultHost {
-		s = r.Host + "/" + s
-	}
-	return s
-}
+// String is "owner/repo#123", the same on every host.
+func (r PRRef) String() string { return fmt.Sprintf("%s/%s#%d", r.Owner, r.Repo, r.Number) }
 
 func (r PRRef) URL() string {
 	return fmt.Sprintf("https://%s/%s/%s/pull/%d", r.Host, r.Owner, r.Repo, r.Number)
@@ -74,16 +65,15 @@ func (r PRRef) URL() string {
 // Key returns the PR's reference.
 func (p PR) Key() PRRef { return PRRef{Host: p.Host, Owner: p.Owner, Repo: p.Repo, Number: p.Number} }
 
-// Ref returns the canonical "owner/repo#123" (or "host/owner/repo#123") form.
+// Ref returns the "owner/repo#123" form.
 func (p PR) Ref() string { return p.Key().String() }
 
 func (p PR) URL() string { return p.Key().URL() }
 
 // ErrBadRef is returned for input that isn't a PR URL.
-var ErrBadRef = errors.New("expected a PR URL like https://github.com/owner/repo/pull/123")
+var ErrBadRef = errors.New("expected a PR URL like https://<host>/owner/repo/pull/123")
 
-// ParseRef accepts a PR URL on any host (github.com or GitHub Enterprise).
-// Only full URLs are accepted: they carry the host, so gh always talks to
+// ParseRef accepts a PR URL on any host. Only full URLs are accepted: they carry the host, so gh always talks to
 // the right one, even when it's signed in to several.
 func ParseRef(s string) (PRRef, error) {
 	s = strings.TrimSpace(s)

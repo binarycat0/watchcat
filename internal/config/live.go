@@ -14,11 +14,12 @@ import (
 // (from the web UI's settings page). Everything else needs a restart.
 type Settings struct {
 	Workflows    map[string]string `json:"workflows"`
-	MergeMethod  string            `json:"merge_method"`
 	PollInterval Duration          `json:"poll_interval"`
 	NotifyOn     []string          `json:"notify_on"`
-	SlackUserID  string            `json:"slack_user_id"`
-	SlackChannel string            `json:"slack_channel"`
+	// Provider settings, prefixed with the provider's config key.
+	GitHubMergeMethod string `json:"github_merge_method"`
+	SlackUserID       string `json:"slack_user_id"`
+	SlackChannel      string `json:"slack_channel"`
 }
 
 // Validation sets for Settings.
@@ -37,8 +38,8 @@ func (s Settings) Validate(ruleNames []string) error {
 			return fmt.Errorf("workflow %s: mode must be off, dry-run or on", name)
 		}
 	}
-	if !slices.Contains(MergeMethods, s.MergeMethod) {
-		return errors.New("merge_method must be squash, merge or rebase")
+	if !slices.Contains(MergeMethods, s.GitHubMergeMethod) {
+		return errors.New("github merge_method must be squash, merge or rebase")
 	}
 	if s.PollInterval.Duration < time.Minute {
 		return errors.New("poll_interval must be at least 1m")
@@ -77,7 +78,7 @@ func (l *Live) Get() Config {
 func (l *Live) Settings() Settings {
 	c := l.Get()
 	return Settings{
-		Workflows: c.Workflows, MergeMethod: c.MergeMethod, PollInterval: c.PollInterval,
+		Workflows: c.Workflows, GitHubMergeMethod: c.GitHub.MergeMethod, PollInterval: c.PollInterval,
 		NotifyOn: c.NotifyOn, SlackUserID: c.Slack.UserID, SlackChannel: c.Slack.Channel,
 	}
 }
@@ -92,7 +93,7 @@ func (l *Live) Update(s Settings) error {
 	for k, v := range s.Workflows {
 		l.cfg.Workflows[k] = v
 	}
-	l.cfg.MergeMethod = s.MergeMethod
+	l.cfg.GitHub.MergeMethod = s.GitHubMergeMethod
 	l.cfg.PollInterval = s.PollInterval
 	l.cfg.NotifyOn = slices.Clone(s.NotifyOn)
 	l.cfg.Slack.UserID = s.SlackUserID
@@ -120,16 +121,12 @@ func saveSettings(p Paths, s Settings) error {
 		wf[k] = v
 	}
 	raw["workflows"] = wf
-	raw["merge_method"] = s.MergeMethod
 	raw["poll_interval"] = s.PollInterval.String()
 	raw["notify_on"] = s.NotifyOn
-	slack, _ := raw["slack"].(map[string]any)
-	if slack == nil {
-		slack = map[string]any{}
-	}
+	section(raw, "github")["merge_method"] = s.GitHubMergeMethod
+	slack := section(raw, "slack")
 	slack["user_id"] = s.SlackUserID
 	slack["channel"] = s.SlackChannel
-	raw["slack"] = slack
 
 	out, err := json.MarshalIndent(raw, "", "  ")
 	if err != nil {
@@ -141,4 +138,15 @@ func saveSettings(p Paths, s Settings) error {
 		return err
 	}
 	return os.Rename(tmp, p.Config)
+}
+
+// section returns raw[key] as an object, creating it if missing, so a
+// provider's other keys in config.json are kept.
+func section(raw map[string]any, key string) map[string]any {
+	m, _ := raw[key].(map[string]any)
+	if m == nil {
+		m = map[string]any{}
+		raw[key] = m
+	}
+	return m
 }

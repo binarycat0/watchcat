@@ -260,6 +260,8 @@ table.health-details tr:last-child th, table.health-details tr:last-child td { b
 .tpl-sub { margin: 4px 0 10px; }
 .pill-btn { border: 0; padding: 0; background: none; line-height: 1; }
 .pill-btn .pill { cursor: pointer; }
+.pill-btn { display: inline-flex; gap: 4px; align-items: center; }
+.tpl-pop .warn-text { color: var(--warn); }
 .tpl-item .menu-list { left: 0; right: auto; width: min(340px, calc(100vw - 32px)); padding: 4px 12px; cursor: default; }
 .tpl-pop p { margin: 8px 0; overflow-wrap: anywhere; }
 .menu-list .tpl-pop a { display: inline; padding: 0; color: var(--accent); }

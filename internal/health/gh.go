@@ -10,7 +10,7 @@ import (
 )
 
 // GH checks the GitHub CLI: installed, which hosts and accounts it is signed
-// in to (github.com and any GitHub Enterprise hosts), whether each watched
+// in to, whether each watched
 // PR's host is among them, and read access to every watched repo.
 type GH struct {
 	Exec  Exec
@@ -56,7 +56,7 @@ func (c GH) Run(ctx context.Context) Result {
 	}
 	hosts := github.SignedInHosts(accounts)
 	if len(hosts) == 0 {
-		return r.set(Fail, "not signed in to any host: run gh auth login (add --hostname <host> for GitHub Enterprise)")
+		return r.set(Fail, "not signed in to any host: run gh auth login --hostname <host>")
 	}
 	r.Summary = "signed in to " + strings.Join(hosts, ", ")
 

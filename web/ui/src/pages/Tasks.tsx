@@ -15,7 +15,7 @@ export function TasksPage() {
   return (
     <>
       <h1>Tasks</h1>
-      <p className="muted">Background work run by the daemon's workers: PR checks, Slack messages, retriggers, merges and agent prompts. Failed tasks retry with backoff.</p>
+      <p className="muted">Background work run by the daemon's workers: PR checks, notifications, retriggers, merges and agent prompts. Failed tasks retry with backoff.</p>
       <div className="toolbar">
         <label className="muted small">Status{' '}
           <select value={status} onChange={(e) => setStatus(e.target.value)}>

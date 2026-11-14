@@ -171,11 +171,11 @@ func TestSettingsAndRules(t *testing.T) {
 	if code != 200 || !strings.Contains(body, `"merge":"dry-run"`) || strings.Contains(body, "xoxb") {
 		t.Fatalf("GET settings: %d %s", code, body)
 	}
-	if code, _ := do("PUT", "/api/v1/settings", `{"workflows":{"merge":"maybe"},"merge_method":"squash","poll_interval":"5m"}`); code != 400 {
+	if code, _ := do("PUT", "/api/v1/settings", `{"workflows":{"merge":"maybe"},"github_merge_method":"squash","poll_interval":"5m"}`); code != 400 {
 		t.Fatalf("invalid mode should be rejected, got %d", code)
 	}
 	code, body = do("PUT", "/api/v1/settings",
-		`{"workflows":{"merge":"on"},"merge_method":"rebase","poll_interval":"10m","notify_on":["ci_failed"],"slack_user_id":"U1"}`)
+		`{"workflows":{"merge":"on"},"github_merge_method":"rebase","poll_interval":"10m","notify_on":["ci_failed"],"slack_user_id":"U1"}`)
 	if code != 200 || live.Get().Workflows["merge"] != "on" || live.Get().PollInterval.Duration != 10*time.Minute {
 		t.Fatalf("PUT settings: %d %s", code, body)
 	}
@@ -207,23 +207,23 @@ func TestAddPRChecksSignedInHosts(t *testing.T) {
 	store, _ := core.Open(filepath.Join(t.TempDir(), "db"))
 	defer store.Close()
 	srv := &Server{Store: store, Pool: &worker.Pool{Store: store},
-		GitHubHosts: func(context.Context) ([]string, error) { return []string{"github.com", "ghe.corp"}, nil }}
+		GitHubHosts: func(context.Context) ([]string, error) { return []string{"github.com", "git.corp"}, nil }}
 	ts := httptest.NewServer(srv.Handler(1))
 	defer ts.Close()
 	cl := &Client{Base: ts.URL, HTTP: ts.Client()}
 	ctx := context.Background()
 
-	pr, err := cl.AddPR(ctx, "https://ghe.corp/team/app/pull/9")
-	if err != nil || pr.Host != "ghe.corp" {
-		t.Fatalf("GHE PR on a signed-in host: %+v %v", pr, err)
+	pr, err := cl.AddPR(ctx, "https://git.corp/team/app/pull/9")
+	if err != nil || pr.Host != "git.corp" {
+		t.Fatalf("PR on a signed-in host: %+v %v", pr, err)
 	}
 	var apiErr *APIError
 	_, err = cl.AddPR(ctx, "https://other.corp/team/app/pull/9")
 	if !errors.As(err, &apiErr) || apiErr.Code != http.StatusBadRequest || !strings.Contains(err.Error(), "gh auth login --hostname other.corp") {
 		t.Fatalf("unknown host should be rejected with a hint: %v", err)
 	}
-	if id, err := cl.Resolve(ctx, "https://ghe.corp/team/app/pull/9"); err != nil || id != pr.ID {
-		t.Fatalf("URL should find the GHE PR: %d %v", id, err)
+	if id, err := cl.Resolve(ctx, "https://git.corp/team/app/pull/9"); err != nil || id != pr.ID {
+		t.Fatalf("URL should find the PR: %d %v", id, err)
 	}
 	if _, err := cl.Resolve(ctx, "https://github.com/team/app/pull/9"); err == nil {
 		t.Fatal("same owner/repo#N on another host must not match")
