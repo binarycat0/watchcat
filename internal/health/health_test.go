@@ -124,17 +124,6 @@ func TestSlackBot(t *testing.T) {
 	}
 }
 
-func TestSlackCLI(t *testing.T) {
-	if r := (SlackCLI{Exec: fakeExec{}}).Run(context.Background()); r.Status != Skip {
-		t.Fatalf("%+v", r)
-	}
-	ex := fakeExec{installed: map[string]bool{"slack": true}, out: map[string]string{
-		"slack version": "Using slack v3.1.0", "slack auth list": "dremio (Team ID: T1)\nUser ID: U1\n"}}
-	if r := (SlackCLI{Exec: ex}).Run(context.Background()); r.Status != OK || len(r.Details) != 2 {
-		t.Fatalf("%+v", r)
-	}
-}
-
 func TestOpencode(t *testing.T) {
 	ex := fakeExec{installed: map[string]bool{"opencode": true}, out: map[string]string{"opencode --version": "1.4.2"}}
 	if r := (Opencode{Exec: ex}).Run(context.Background()); r.Status != OK || r.Version != "1.4.2" {

@@ -79,5 +79,4 @@ exits non-zero when a required check fails.
 | Setup | yes | config file, database, binary and symlink, `PATH`, service, daemon, where each secret comes from (masked) |
 | gh | yes | version, signed-in hosts and scopes (`repo`), access to each watched repo |
 | Slack bot | yes | `auth.test`, scopes (`chat:write`), channel set |
-| Slack CLI | no | version, `slack auth list` |
 | opencode | no | version |

@@ -11,7 +11,7 @@ type HealthTab = 'service' | 'vcs' | 'notifications' | 'agent';
 const TAB_CHECKS: Record<HealthTab, string[]> = {
   service: ['setup'],
   vcs: ['gh'],
-  notifications: ['slack', 'slack-cli'],
+  notifications: ['slack'],
   agent: ['opencode'],
 };
 const TABS: { key: HealthTab; label: string }[] = [

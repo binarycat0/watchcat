@@ -51,35 +51,3 @@ func (c SlackBot) Run(ctx context.Context) Result {
 	}
 	return r
 }
-
-// SlackCLI reports on the optional Slack CLI. Watchcat posts through the bot
-// token, so the CLI is informational.
-type SlackCLI struct {
-	Exec Exec
-}
-
-func (c SlackCLI) Run(ctx context.Context) Result {
-	r := Result{Name: "slack-cli", Title: "Slack CLI", Required: false, Status: OK}
-	if _, err := c.Exec.LookPath("slack"); err != nil {
-		return r.set(Skip, "not installed (optional)")
-	}
-	if out, err := c.Exec.Output(ctx, "slack", "version"); err == nil {
-		r.Version = firstLine(out)
-	}
-	out, err := c.Exec.Output(ctx, "slack", "auth", "list")
-	if err != nil {
-		return r.set(Warn, "not authorized: run slack login ("+lastLine(err.Error())+")")
-	}
-	lines := 0
-	for _, l := range strings.Split(strings.TrimSpace(string(out)), "\n") {
-		if l = strings.TrimSpace(l); l != "" {
-			r.add("auth", l)
-			lines++
-		}
-	}
-	if lines == 0 {
-		return r.set(Warn, "no workspaces authorized: run slack login")
-	}
-	r.Summary = "authorized"
-	return r
-}
