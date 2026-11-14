@@ -16,7 +16,7 @@ Everything lives in `~/.watchcat` (or `$WATCHCAT_HOME`), mode 0700:
 | `poll_interval` | how often each PR is checked, e.g. `"5m"` |
 | `tick_interval`, `workers` | planner tick and worker pool size |
 | `notify_on` | change kinds that send a notification (default: all except `pushed`) |
-| `workflows` | see [Workflows](workflows.md) |
+| `workflows` | see [Workflows](../workflows.md) |
 | `github` | version control settings: `merge_method`, see [Version control](#version-control-github) |
 | `slack` | notification settings: `user_id` or `channel`, see [Notifications](#notifications-slack) |
 
@@ -83,7 +83,7 @@ Links in notifications are written as `<URL|TEXT>`.
 
 watchcat talks to opencode through `opencode api`, so nothing extra needs to
 run, and there is nothing to configure yet. Session IDs look like `ses_...`.
-To let opencode link its own PRs, add the [MCP server](mcp.md) to its config
+To let opencode link its own PRs, add the [MCP server](../mcp.md) to its config
 (`~/.config/opencode/opencode.json` or a repo's `opencode.json`):
 
 ```json

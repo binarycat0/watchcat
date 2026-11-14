@@ -55,12 +55,18 @@ uninstall:
 clean:
 	rm -rf bin web/dist/app site
 
-# Docs site (MkDocs Material in Docker, see utils/mkdocs).
+# Docs site (MkDocs Material in a container, see utils/mkdocs).
+DOCKER ?= docker
 DOCS_IMAGE ?= watchcat-docs
-DOCS_RUN = docker run --rm --user $(shell id -u):$(shell id -g) -v "$(CURDIR)":/docs
+ifeq ($(notdir $(DOCKER)),podman)
+# Rootless podman: run as your own user so site/ stays yours; :z for SELinux.
+DOCS_RUN = $(DOCKER) run --rm --userns=keep-id -v "$(CURDIR)":/docs:z
+else
+DOCS_RUN = $(DOCKER) run --rm --user $(shell id -u):$(shell id -g) -v "$(CURDIR)":/docs
+endif
 
 docs-image:
-	docker build -q -t $(DOCS_IMAGE) utils/mkdocs >/dev/null
+	$(DOCKER) build -q -t $(DOCS_IMAGE) utils/mkdocs >/dev/null
 
 # Builds site/.
 docs: docs-image

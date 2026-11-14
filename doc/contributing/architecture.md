@@ -8,7 +8,7 @@ SQLite-backed queue, run by a worker pool:
    reviews, unresolved threads), stores a snapshot and diffs it with the last one.
 3. Each change (`ci_failed`, `conflict`, `new_comments`, ...) goes into the
    PR's history and is routed to follow-up tasks: a notification
-   (`slack.notify`) and the [workflow rules](workflows.md) (`Router` in
+   (`slack.notify`) and the [workflow rules](../workflows.md) (`Router` in
    `internal/worker`).
 4. Failed tasks retry with backoff; tasks interrupted by a restart are
    requeued. `watchcat tasks` lists them.
@@ -42,3 +42,7 @@ internal/api/     HTTP handlers and the client the CLI uses
 internal/service/ launchd / systemd unit generation
 web/ui/           React UI source; built into web/dist/app and embedded
 ```
+
+The web UI is a React + TypeScript app in `web/ui/`, embedded into the binary
+at build time. A binary built without it (`make build-go`) serves a page
+explaining how to build it.
