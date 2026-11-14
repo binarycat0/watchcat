@@ -1,11 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ActionButton, Empty, Pill, Tabs, healthLabel } from '../components';
+import { ActionButton, Empty, HEALTH_TABS, Pill, SettingsLink, Tabs, healthLabel, type ConfigTab, type HealthTab } from '../components';
 import { ago } from '../format';
 import type { HealthDetail, HealthResult, HealthStatus } from '../types';
 
-type HealthTab = 'service' | 'vcs' | 'notifications' | 'agent';
 
 // Which checks each tab shows. A check that isn't listed lands on Service.
 const TAB_CHECKS: Record<HealthTab, string[]> = {
@@ -14,16 +13,11 @@ const TAB_CHECKS: Record<HealthTab, string[]> = {
   notifications: ['slack'],
   agent: ['opencode'],
 };
-const TABS: { key: HealthTab; label: string }[] = [
-  { key: 'service', label: 'Service' },
-  { key: 'vcs', label: 'Version control' },
-  { key: 'notifications', label: 'Notifications' },
-  { key: 'agent', label: 'AI agent' },
-];
+const TABS = (Object.keys(HEALTH_TABS) as HealthTab[]).map((key) => ({ key, label: HEALTH_TABS[key] }));
 
 // Where a check's settings are edited, linked from its card.
-const SETTINGS: Record<string, { to: string; text: string; page: string }> = {
-  slack: { to: '/config?tab=notifications', page: 'Config › Notifications', text: 'Set the recipient and see how to set the bot token on the' },
+const SETTINGS: Record<string, { tab: ConfigTab; text: string }> = {
+  slack: { tab: 'notifications', text: 'Set the recipient and see how to set the bot token on the' },
 };
 
 const isSecret = (d: HealthDetail) => d.label.startsWith('secret ');
@@ -101,7 +95,7 @@ function Check({ r }: { r: HealthResult }) {
         </table>
       )}
       {SETTINGS[r.name] && (
-        <p className="muted small health-link">{SETTINGS[r.name].text} <Link to={SETTINGS[r.name].to}>{SETTINGS[r.name].page}</Link> page.</p>
+        <p className="muted small health-link">{SETTINGS[r.name].text} <SettingsLink page="config" tab={SETTINGS[r.name].tab} /> page.</p>
       )}
     </section>
   );

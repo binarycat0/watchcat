@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
 export type Tone = 'ok' | 'warn' | 'err' | 'info' | 'idle';
 
@@ -236,4 +237,23 @@ export function Tabs<K extends string>({ tabs, active, onChange }: {
       ))}
     </div>
   );
+}
+
+// ---- links to settings pages ----
+
+export const CONFIG_TABS = {
+  schedule: 'Schedule', rules: 'Workflow rules', notifications: 'Notifications', templates: 'Templates',
+} as const;
+export const HEALTH_TABS = {
+  service: 'Service', vcs: 'Version control', notifications: 'Notifications', agent: 'AI agent',
+} as const;
+export type ConfigTab = keyof typeof CONFIG_TABS;
+export type HealthTab = keyof typeof HEALTH_TABS;
+
+/** One look for every pointer to a settings page: "Config › Workflow rules", opening that tab. */
+export function SettingsLink(props: { page: 'config'; tab: ConfigTab } | { page: 'health'; tab: HealthTab }) {
+  const [title, label, first] = props.page === 'config'
+    ? ['Config', CONFIG_TABS[props.tab], 'schedule']
+    : ['Health', HEALTH_TABS[props.tab], 'service'];
+  return <Link to={props.tab === first ? `/${props.page}` : `/${props.page}?tab=${props.tab}`}>{title} › {label}</Link>;
 }

@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
-import { ActionButton, Empty, PagerBar, Pill, Tabs, Time, useServerPage, useToast } from '../components';
+import { ActionButton, Empty, PagerBar, Pill, SettingsLink, Tabs, Time, useServerPage, useToast } from '../components';
 import { ago, human, prRef, watchState } from '../format';
 import type { AgentSession, CIRun, PRDetail, RuleInfo, Snapshot } from '../types';
 import { TaskTable } from './Tasks';
@@ -208,7 +208,7 @@ function PromptButton({ id, rule, what, mode }: { id: number; rule: string; what
   return (
     <ActionButton fn={() => api.promptAgent(id, rule)}
       ok={(r) => (r as { dry_run: boolean })?.dry_run
-        ? 'Dry-run: prompt built, not sent (see the Tasks tab). Switch the rule to "on" in Config to send.'
+        ? 'Dry-run: prompt built, not sent (see the Tasks tab). Switch the rule to "on" in Config › Workflow rules to send.'
         : 'Prompt queued; see the Tasks tab for the result'}>
       {mode === 'on' ? `Send ${what} to agent` : `Preview ${what} prompt (${mode}, not sent)`}
     </ActionButton>
@@ -259,6 +259,6 @@ function Rules({ rules }: { rules: RuleInfo[] }) {
         </tr>
       ))}</tbody>
     </table>
-    <p className="muted small">A rule fires once per PR state (new commit, new failures or threads). Change modes on the <Link to="/config">Config</Link> page.</p>
+    <p className="muted small">A rule fires once per PR state (new commit, new failures or threads). Change modes on the <SettingsLink page="config" tab="rules" /> page.</p>
   </>);
 }
