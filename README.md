@@ -88,3 +88,7 @@ WATCHCAT_HOME=/tmp/wd ./bin/watchcat daemon   # isolated dev instance
 cd web/ui && npm ci && npm run dev            # UI hot reload on :5173, API proxied to :7878 (WATCHCAT_API overrides)
 make docs-serve  # docs site on :8000 (Docker)
 ```
+
+### Releasing
+
+Push a `v*` tag, or run the **Release** workflow on `main` from the Actions tab with a version such as `v0.2.0` (and optional notes). Either way it builds the binaries and publishes the GitHub release.
