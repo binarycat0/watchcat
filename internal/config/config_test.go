@@ -69,7 +69,7 @@ func TestLiveUpdateNeverWritesToken(t *testing.T) {
 
 func TestSettingsValidate(t *testing.T) {
 	rules := []string{"merge"}
-	good := Settings{Workflows: map[string]string{"merge": "dry-run"}, MergeMethod: "squash", PollInterval: Duration{5 * 60e9}, GitHubHost: "github.com"}
+	good := Settings{Workflows: map[string]string{"merge": "dry-run"}, MergeMethod: "squash", PollInterval: Duration{5 * 60e9}}
 	if err := good.Validate(rules); err != nil {
 		t.Fatal(err)
 	}
@@ -77,8 +77,7 @@ func TestSettingsValidate(t *testing.T) {
 		{Workflows: map[string]string{"merge": "yes"}, MergeMethod: "squash", PollInterval: good.PollInterval},
 		{Workflows: map[string]string{"nope": "on"}, MergeMethod: "squash", PollInterval: good.PollInterval},
 		{MergeMethod: "fast-forward", PollInterval: good.PollInterval},
-		{MergeMethod: "squash", PollInterval: Duration{1e9}, GitHubHost: "github.com"},
-		{MergeMethod: "squash", PollInterval: good.PollInterval, GitHubHost: "https://ghe.corp"},
+		{MergeMethod: "squash", PollInterval: Duration{1e9}},
 	} {
 		if bad.Validate(rules) == nil {
 			t.Errorf("should reject %+v", bad)

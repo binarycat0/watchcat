@@ -130,7 +130,7 @@ func cmdPR(e env, args []string) error {
 			return err
 		}
 		if len(prs) == 0 {
-			fmt.Println("no PRs watched; add one with `watchcat pr add owner/repo#123`")
+			fmt.Println("no PRs watched; add one with `watchcat pr add https://github.com/owner/repo/pull/123`")
 			return nil
 		}
 		// tabwriter aligns columns, like str.ljust across rows.
@@ -150,7 +150,7 @@ func cmdPR(e env, args []string) error {
 		return cmdBind(c, cl, sub, rest)
 	}
 	if len(rest) != 1 {
-		return fmt.Errorf("usage: watchcat pr %s <id|owner/repo#123|url>", sub)
+		return fmt.Errorf("usage: watchcat pr %s <id|url>", sub)
 	}
 	arg := rest[0]
 

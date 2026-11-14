@@ -60,9 +60,8 @@ export function ConfigPage() {
           {tab === 'schedule' && (<>
             <div className="form-grid">
               <label>Check every <input value={form.poll_interval} onChange={(e) => set({ poll_interval: e.target.value })} placeholder="5m" /></label>
-              <label>Host for short refs (owner/repo#123) <input value={form.github_host} onChange={(e) => set({ github_host: e.target.value })} placeholder="github.com" /></label>
             </div>
-            <p className="muted small">How often each watched PR is checked. PR URLs and host/owner/repo#123 refs carry their own host; watchcat only accepts hosts gh is signed in to, see <Link to="/health">Health</Link>.</p>
+            <p className="muted small">How often each watched PR is checked. PRs are added by URL, and watchcat only accepts hosts gh is signed in to; see <Link to="/health">Health</Link>.</p>
           </>)}
 
           {tab === 'rules' && (<>

@@ -8,7 +8,7 @@ requests with a non-local `Host` or a cross-site `Origin` are rejected.
 | GET | `/status` | daemon info |
 | GET | `/health?refresh=1` | setup, daemon and tool health, same report as `watchcat health` (cached for a minute) |
 | GET | `/prs` | list |
-| POST | `/prs` | `{"ref": "<PR URL> or owner/repo#123"}` |
+| POST | `/prs` | `{"ref": "<PR URL>"}` |
 | GET | `/prs/{id}` | PR and history |
 | DELETE | `/prs/{id}` | stop watching |
 | POST | `/prs/{id}/check` | check now |

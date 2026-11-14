@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"slices"
-	"strings"
 	"sync"
 	"time"
 )
@@ -20,7 +19,6 @@ type Settings struct {
 	NotifyOn     []string          `json:"notify_on"`
 	SlackUserID  string            `json:"slack_user_id"`
 	SlackChannel string            `json:"slack_channel"`
-	GitHubHost   string            `json:"github_host"`
 }
 
 // Validation sets for Settings.
@@ -41,9 +39,6 @@ func (s Settings) Validate(ruleNames []string) error {
 	}
 	if !slices.Contains(MergeMethods, s.MergeMethod) {
 		return errors.New("merge_method must be squash, merge or rebase")
-	}
-	if s.GitHubHost == "" || strings.ContainsAny(s.GitHubHost, "/: ") {
-		return errors.New("github_host must be a host name like github.com")
 	}
 	if s.PollInterval.Duration < time.Minute {
 		return errors.New("poll_interval must be at least 1m")
@@ -84,7 +79,6 @@ func (l *Live) Settings() Settings {
 	return Settings{
 		Workflows: c.Workflows, MergeMethod: c.MergeMethod, PollInterval: c.PollInterval,
 		NotifyOn: c.NotifyOn, SlackUserID: c.Slack.UserID, SlackChannel: c.Slack.Channel,
-		GitHubHost: c.GitHubHost,
 	}
 }
 
@@ -103,7 +97,6 @@ func (l *Live) Update(s Settings) error {
 	l.cfg.NotifyOn = slices.Clone(s.NotifyOn)
 	l.cfg.Slack.UserID = s.SlackUserID
 	l.cfg.Slack.Channel = s.SlackChannel
-	l.cfg.GitHubHost = strings.ToLower(s.GitHubHost)
 	return nil
 }
 
@@ -130,7 +123,6 @@ func saveSettings(p Paths, s Settings) error {
 	raw["merge_method"] = s.MergeMethod
 	raw["poll_interval"] = s.PollInterval.String()
 	raw["notify_on"] = s.NotifyOn
-	raw["github_host"] = strings.ToLower(s.GitHubHost)
 	slack, _ := raw["slack"].(map[string]any)
 	if slack == nil {
 		slack = map[string]any{}

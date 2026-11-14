@@ -129,7 +129,7 @@ func (s *Server) Handler(pid int) http.Handler {
 			writeJSON(w, http.StatusBadRequest, errorResponse{"invalid JSON body"})
 			return
 		}
-		ref, err := core.ParseRef(req.Ref, s.defaultHost())
+		ref, err := core.ParseRef(req.Ref)
 		if err != nil {
 			writeErr(w, err)
 			return
@@ -404,14 +404,6 @@ func (s *Server) ruleMode(rule string) string {
 		return m
 	}
 	return worker.ModeOff
-}
-
-// defaultHost is the host for short refs like owner/repo#123.
-func (s *Server) defaultHost() string {
-	if s.Live == nil {
-		return core.DefaultHost
-	}
-	return s.Live.Get().GitHubHost
 }
 
 // slackTarget is "" unless there is both a token and a recipient.
