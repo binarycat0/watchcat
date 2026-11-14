@@ -202,6 +202,18 @@ h3 { font-size: 14px; margin: 16px 0 8px; }
 .tab.on { color: var(--fg); font-weight: 600; background: var(--bg); border-color: var(--line); }
 .tab-note { font-weight: 400; color: var(--muted); font-size: 12px; }
 .tab-panel { padding-top: 12px; }
+.tab-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-left: 6px; vertical-align: middle; }
+.tab-dot.warn { background: var(--warn); }
+.tab-dot.fail { background: var(--err); }
+.health-card { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; }
+.health-card.fail { box-shadow: inset 3px 0 var(--err); }
+.health-card.warn { box-shadow: inset 3px 0 var(--warn); }
+.health-card.ok { box-shadow: inset 3px 0 var(--ok); }
+.health-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 4px; }
+table.health-details { margin-top: 8px; table-layout: fixed; }
+table.health-details th { width: 30%; font-size: 13px; font-weight: 500; color: var(--muted); }
+table.health-details th, table.health-details td { padding: 6px 8px; overflow-wrap: anywhere; font-size: 13px; }
+table.health-details tr:last-child th, table.health-details tr:last-child td { border-bottom: 0; }
 .tab-panel > h3:first-child { margin-top: 4px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 24px 0 8px; }
 .section-head h2 { margin: 0; }
