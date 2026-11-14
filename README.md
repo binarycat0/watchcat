@@ -4,6 +4,10 @@ A personal daemon that watches your pull requests (CI, reviews, conflicts),
 notifies you about changes, and hands follow-up work to the AI agent session
 that owns each PR.
 
+> **Note:** watchcat currently works only with GitHub (through `gh`), Slack and
+> opencode; see [Supported stack](#supported-stack). Support for other
+> providers is planned.
+
 `watchcat daemon` runs everything (scheduler, SQLite store, localhost API and
 web UI) in one process kept alive by launchd or systemd. The other commands
 talk to it.
