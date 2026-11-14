@@ -42,3 +42,7 @@ internal/api/     HTTP handlers and the client the CLI uses
 internal/service/ launchd / systemd unit generation
 web/ui/           React UI source; built into web/dist/app and embedded
 ```
+
+The web UI is a React + TypeScript app in `web/ui/`, embedded into the binary
+at build time. A binary built without it (`make build-go`) serves a page
+explaining how to build it.
