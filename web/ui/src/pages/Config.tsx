@@ -5,6 +5,9 @@ import { api } from '../api';
 import { ActionButton, Empty, Tabs, useToast } from '../components';
 import type { Settings } from '../types';
 
+/** Comparable form of the settings; checkbox order doesn't count as a change. */
+const canon = (s: Settings) => JSON.stringify({ ...s, notify_on: [...s.notify_on].sort() });
+
 type ConfigTab = 'schedule' | 'rules' | 'notifications' | 'templates';
 const TABS: ConfigTab[] = ['schedule', 'rules', 'notifications', 'templates'];
 
@@ -30,6 +33,7 @@ export function ConfigPage() {
   if (!data.data || !form) return null;
   const d = data.data;
   const set = (patch: Partial<Settings>) => setForm({ ...form, ...patch });
+  const dirty = canon(form) !== canon(d.settings);
   const secrets = (health.data?.results.find((r) => r.name === 'setup')?.details ?? []).filter((x) => x.label.startsWith('secret '));
 
   const tabs: { key: ConfigTab; label: string }[] = [
@@ -47,7 +51,11 @@ export function ConfigPage() {
           <p className="muted">Saved to <span className="mono">{d.config_path}</span> and applied right away; no restart needed.</p>
         </div>
         {/* Lives outside the form, tied to it by id; saves every tab. */}
-        <button type="submit" form="config-form" className="primary" disabled={save.isPending} title="Saves all tabs">Save config</button>
+        <div className="save-box">
+          {dirty && <span className="muted small">Unsaved changes</span>}
+          <button type="submit" form="config-form" className={dirty ? 'primary' : ''} disabled={!dirty || save.isPending}
+            title={dirty ? 'Saves all tabs' : 'No changes to save'}>Save config</button>
+        </div>
       </div>
       <form id="config-form" className="tab-block" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
         <Tabs<ConfigTab> tabs={tabs} active={tab} onChange={(t) => setParams(t === 'schedule' ? {} : { tab: t }, { replace: true })} />
