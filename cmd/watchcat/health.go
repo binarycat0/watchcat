@@ -36,7 +36,7 @@ func (e env) healthChecks(cfg config.Config, prs []core.PR, daemon func(context.
 	return []health.Check{
 		e.setupCheck(daemon),
 		health.GH{Exec: ex, Repos: repos},
-		health.SlackBot{Bot: bot, Channel: cfg.Slack.Target(), TokenSource: e.tokenSource, StoreErr: e.tokenErr},
+		health.SlackBot{Bot: bot, UserID: cfg.Slack.UserID, Channel: cfg.Slack.Channel, TokenSource: e.tokenSource, StoreErr: e.tokenErr},
 		health.Opencode{Exec: ex},
 	}
 }
