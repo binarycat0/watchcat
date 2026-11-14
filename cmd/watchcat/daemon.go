@@ -21,6 +21,7 @@ import (
 	"github.com/binarycat0/watchcat/internal/health"
 	"github.com/binarycat0/watchcat/internal/secrets"
 	"github.com/binarycat0/watchcat/internal/slack"
+	"github.com/binarycat0/watchcat/internal/templates"
 	"github.com/binarycat0/watchcat/internal/worker"
 	"github.com/binarycat0/watchcat/web"
 )
@@ -66,6 +67,7 @@ func cmdDaemon(e env, args []string) error {
 	cfg := live.Get
 	notifyOn := func() []string { return cfg().NotifyOn }
 	slackTarget := func() string { return cfg().Slack.Target() }
+	tpl := &templates.Set{Dir: e.paths.Templates, Log: log}
 	var routes []worker.Router
 	if e.tokenErr != nil {
 		log.Warn("secret store", "err", e.tokenErr)
@@ -76,7 +78,7 @@ func cmdDaemon(e env, args []string) error {
 	var poster slack.Poster
 	if e.cfg.Slack.BotToken != "" {
 		poster = &slack.Bot{Token: e.cfg.Slack.BotToken}
-		slackRoute := worker.SlackRouter(notifyOn)
+		slackRoute := worker.SlackRouter(notifyOn, tpl)
 		// Only queue messages while there is someone to send them to.
 		routes = append(routes, func(pr core.PR, s core.Snapshot, c core.Change) []core.NewTask {
 			if slackTarget() == "" {
@@ -98,14 +100,15 @@ func cmdDaemon(e env, args []string) error {
 				Store: store, GitHub: gh, Interval: interval, Runs: gh,
 				Route: worker.Routers(routes...),
 				Workflows: &worker.Workflows{
-					Store:  store,
-					Modes:  func() map[string]string { return cfg().Workflows },
-					Notify: func() bool { return poster != nil && slackTarget() != "" },
+					Store:     store,
+					Modes:     func() map[string]string { return cfg().Workflows },
+					Notify:    func() bool { return poster != nil && slackTarget() != "" },
+					Templates: tpl,
 				},
 			},
 			worker.KindPRMerge:     &worker.Merge{Store: store, GitHub: gh, Writer: gh, Method: method},
 			worker.KindPRAutoMerge: &worker.AutoMerge{Store: store, GitHub: gh, Writer: gh, Method: method},
-			worker.KindAgentPrompt: &worker.AgentPrompt{Store: store, GitHub: gh, Reader: gh, Agent: oc},
+			worker.KindAgentPrompt: &worker.AgentPrompt{Store: store, GitHub: gh, Reader: gh, Agent: oc, Templates: tpl},
 			worker.KindSlackNotify: &worker.SlackNotify{Slack: poster, Channel: slackTarget},
 			worker.KindPRRetrigger: &worker.Retrigger{
 				Store: store, GitHub: gh, RecheckAfter: time.Minute,
@@ -118,7 +121,7 @@ func cmdDaemon(e env, args []string) error {
 	}
 	srv := &api.Server{
 		Store: store, Pool: pool, Web: web.FS(), Version: version, DBPath: e.paths.DB,
-		Slack: poster, SlackChannel: slackTarget, Live: live, Log: log, Agent: oc,
+		Slack: poster, SlackChannel: slackTarget, Live: live, Log: log, Agent: oc, Templates: tpl,
 		GitHubHosts: func(ctx context.Context) ([]string, error) {
 			accounts, err := gh.Accounts(ctx)
 			return github.SignedInHosts(accounts), err

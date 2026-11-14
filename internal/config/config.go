@@ -122,6 +122,7 @@ func Default() Config {
 //	~/.watchcat/bin/watchcat     the binary (~/.local/bin/watchcat links here)
 //	~/.watchcat/config.json      settings, including the Slack token (0600)
 //	~/.watchcat/watchcat.db      SQLite: PRs, history, task queue
+//	~/.watchcat/templates/       edited Slack message and agent prompt templates
 //	~/.watchcat/logs/watchcat.log daemon output when run as a service
 type Paths struct {
 	Dir    string
@@ -129,6 +130,8 @@ type Paths struct {
 	Config string
 	DB     string
 	Log    string
+	// Templates holds overrides of the built-in message templates.
+	Templates string
 }
 
 // DefaultPaths honours $WATCHCAT_HOME, otherwise uses ~/.watchcat.
@@ -146,11 +149,12 @@ func DefaultPaths() (Paths, error) {
 
 func PathsIn(dir string) Paths {
 	return Paths{
-		Dir:    dir,
-		Bin:    filepath.Join(dir, "bin", "watchcat"),
-		Config: filepath.Join(dir, "config.json"),
-		DB:     filepath.Join(dir, "watchcat.db"),
-		Log:    filepath.Join(dir, "logs", "watchcat.log"),
+		Dir:       dir,
+		Bin:       filepath.Join(dir, "bin", "watchcat"),
+		Config:    filepath.Join(dir, "config.json"),
+		DB:        filepath.Join(dir, "watchcat.db"),
+		Log:       filepath.Join(dir, "logs", "watchcat.log"),
+		Templates: filepath.Join(dir, "templates"),
 	}
 }
 

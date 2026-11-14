@@ -237,3 +237,38 @@ table.health-details tr:last-child th, table.health-details tr:last-child td { b
   .list .when, .list .kind { min-width: 0; }
 }
 .health-link { margin: 8px 0 0; }
+
+/* Config > Templates */
+.tpl { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; align-items: start; }
+.tpl-list { display: flex; flex-direction: column; gap: 12px; }
+.tpl-group { padding: 0 10px 4px; }
+.tpl-item {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 10px; border: 0; border-radius: 6px; background: transparent; text-align: left; font-size: 14px;
+}
+.tpl-item:hover { background: var(--idle-bg); }
+.tpl-item.on { background: var(--idle-bg); font-weight: 600; }
+.tpl-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-start; justify-content: space-between; }
+.tpl-head h3 { margin: 0 0 2px; }
+.tpl-head p { margin: 0; }
+.tpl-head .btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.tpl-text {
+  display: block; width: 100%; resize: vertical; padding: 8px 10px; line-height: 1.5;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); tab-size: 2;
+}
+.tpl-preview {
+  white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 8px 10px; max-height: 420px; overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px; font-size: 12px; min-height: 3em;
+}
+.tpl-vars { margin-top: 16px; }
+button.link { border: 0; background: none; padding: 0; color: var(--accent); font-size: inherit; }
+button.link:hover { text-decoration: underline; }
+@media (max-width: 720px) {
+  .tpl { grid-template-columns: minmax(0, 1fr); }
+  .tpl-list { flex-direction: row; flex-wrap: wrap; }
+  .tpl-list > div { flex: 1 1 100%; }
+}
+@media (max-width: 720px) {
+  .tabs { overflow-x: auto; scrollbar-width: none; }
+  .tab { white-space: nowrap; padding: 7px 10px; }
+}

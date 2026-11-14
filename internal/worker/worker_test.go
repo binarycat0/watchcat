@@ -58,7 +58,7 @@ func TestPRCheckFansOutToSlack(t *testing.T) {
 	pr, _ := store.AddPR(ctx, core.PRRef{Host: "github.com", Owner: "o", Repo: "r", Number: 7})
 	gh := &fakeGitHub{snap: core.Snapshot{Title: "My <PR>", State: "OPEN", HeadSHA: "a", Mergeable: "MERGEABLE",
 		CI: core.CIFailure, FailedChecks: []core.Check{{Name: "unit", URL: "https://ci/1"}}}}
-	h := &PRCheck{Store: store, GitHub: gh, Interval: Fixed(time.Hour), Route: SlackRouter(Fixed([]string{core.ChangeCIFailed}))}
+	h := &PRCheck{Store: store, GitHub: gh, Interval: Fixed(time.Hour), Route: SlackRouter(Fixed([]string{core.ChangeCIFailed}), nil)}
 
 	run := func() {
 		if err := h.Handle(ctx, core.Task{PRID: &pr.ID}); err != nil {
@@ -109,7 +109,7 @@ func TestPoolRunsPlansAndRetries(t *testing.T) {
 	pool := &Pool{
 		Store: store,
 		Handlers: map[string]Handler{
-			KindPRCheck:     &PRCheck{Store: store, GitHub: gh, Interval: Fixed(time.Hour), Route: SlackRouter(Fixed([]string{core.ChangeConflict}))},
+			KindPRCheck:     &PRCheck{Store: store, GitHub: gh, Interval: Fixed(time.Hour), Route: SlackRouter(Fixed([]string{core.ChangeConflict}), nil)},
 			KindSlackNotify: &SlackNotify{Slack: sl, Channel: Fixed("C1")},
 		},
 		Planners:   []Planner{PRPlanner(store, Fixed(time.Hour))},

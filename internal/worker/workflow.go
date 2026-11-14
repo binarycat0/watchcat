@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/templates"
 )
 
 // Workflow modes, set per rule in config.json.
@@ -100,6 +101,8 @@ type Workflows struct {
 	Rules []Rule                   // nil = the package-level Rules
 	// Notify, if it returns true, adds a Slack DM for every rule that fires.
 	Notify Value[bool]
+	// Templates renders the Slack DM; nil uses the defaults.
+	Templates *templates.Set
 }
 
 // Evaluate fires every matching rule that hasn't fired for this state yet.
@@ -136,7 +139,7 @@ func (w *Workflows) Evaluate(ctx context.Context, pr core.PR, s core.Snapshot) e
 		if w.Notify != nil && w.Notify() {
 			tasks = append(tasks, core.NewTask{
 				Kind: KindSlackNotify, PRID: pr.ID, MaxAttempts: 5,
-				Payload: SlackPayload{Text: FormatRule(pr, s, r, mode)},
+				Payload: SlackPayload{Text: FormatRule(w.Templates, pr, s, r, mode)},
 			})
 		}
 		for _, t := range tasks {
@@ -148,29 +151,10 @@ func (w *Workflows) Evaluate(ctx context.Context, pr core.PR, s core.Snapshot) e
 	return nil
 }
 
-var ruleEmoji = map[string]string{
-	"merge": ":rocket:", "review_threads": ":speech_balloon:", "ci_failed": ":x:", "needs_review": ":eyes:",
-}
-
-// FormatRule renders the Slack DM for a fired rule.
-func FormatRule(pr core.PR, s core.Snapshot, r Rule, mode string) string {
-	head := map[string]string{
-		"merge":          "Ready to merge: CI green, approved, no open conversations.",
-		"review_threads": fmt.Sprintf("Approved and green, but %d conversation(s) are unresolved.", s.Unresolved),
-		"ci_failed":      "CI failed: " + checkNames(s.FailedChecks) + ".",
-		"needs_review":   "CI is green and the PR needs a review.",
-	}[r.Name]
-	next := "Next: " + r.Action + "."
-	if mode == ModeDryRun {
-		next = "Dry run, nothing changed. Would " + r.Action + "."
-	}
-	return fmt.Sprintf("%s <%s|%s> %s\n%s\n%s", ruleEmoji[r.Name], pr.URL(), pr.Ref(), slackEscape(s.Title), head, next)
-}
-
-func checkNames(cs []core.Check) string {
-	names := make([]string, len(cs))
-	for i, c := range cs {
-		names[i] = c.Name
-	}
-	return strings.Join(names, ", ")
+// FormatRule renders the Slack DM for a fired rule (the slack_rule template).
+func FormatRule(tpl *templates.Set, pr core.PR, s core.Snapshot, r Rule, mode string) string {
+	return tpl.Render(templates.SlackRule, templates.RuleData{
+		PR: prData(pr, s, true), Rule: r.Name, Action: slackEscape(r.Action), DryRun: mode == ModeDryRun,
+		FailedChecks: checks(s.FailedChecks, true), Unresolved: s.Unresolved,
+	})
 }

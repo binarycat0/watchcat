@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import { ActionButton, CONFIG_TABS, Empty, SettingsLink, Tabs, useToast, type ConfigTab } from '../components';
 import type { Settings } from '../types';
+import { TemplatesTab } from './Templates';
 
 /** Comparable form of the settings; checkbox order doesn't count as a change. */
 const canon = (s: Settings) => JSON.stringify({ ...s, notify_on: [...s.notify_on].sort() });
@@ -108,7 +109,7 @@ export function ConfigPage() {
             ) : <Empty>Secret status unavailable.</Empty>}
           </>)}
 
-          {tab === 'templates' && <Empty>Message and prompt templates are coming in the next iteration.</Empty>}
+          {tab === 'templates' && <TemplatesTab />}
         </div>
       </form>
     </>

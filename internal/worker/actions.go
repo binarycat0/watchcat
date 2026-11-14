@@ -9,6 +9,7 @@ import (
 
 	"github.com/binarycat0/watchcat/internal/core"
 	"github.com/binarycat0/watchcat/internal/github"
+	"github.com/binarycat0/watchcat/internal/templates"
 )
 
 const (
@@ -127,6 +128,8 @@ type AgentPrompt struct {
 	GitHub github.Fetcher
 	Reader PRReader
 	Agent  Agent // nil until an agent is configured
+	// Templates renders the prompts; nil uses the defaults.
+	Templates *templates.Set
 }
 
 func (h *AgentPrompt) Handle(ctx context.Context, t core.Task) error {
@@ -140,7 +143,7 @@ func (h *AgentPrompt) Handle(ctx context.Context, t core.Task) error {
 		if s.CI != core.CIFailure {
 			return h.Store.SetTaskResult(ctx, t.ID, "skipped: CI is no longer failing")
 		}
-		text = CIFailedPrompt(pr, s, h.failedLogs(ctx, pr, s))
+		text = CIFailedPrompt(h.Templates, pr, s, h.failedLogs(ctx, pr, s))
 	case PromptReviewThreads:
 		threads, err := h.Reader.UnresolvedThreads(ctx, pr.Key())
 		if err != nil {
@@ -149,7 +152,7 @@ func (h *AgentPrompt) Handle(ctx context.Context, t core.Task) error {
 		if len(threads) == 0 {
 			return h.Store.SetTaskResult(ctx, t.ID, "skipped: no unresolved conversations left")
 		}
-		text = ReviewThreadsPrompt(pr, s, threads)
+		text = ReviewThreadsPrompt(h.Templates, pr, s, threads)
 	default:
 		return fmt.Errorf("unknown prompt %q", p.Prompt)
 	}
