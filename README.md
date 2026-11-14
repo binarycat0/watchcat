@@ -1,7 +1,8 @@
 # watchcat
 
 A personal daemon that watches your pull requests (CI, reviews, conflicts),
-notifies Slack, and hands work to the opencode session that owns each PR.
+notifies you about changes, and hands follow-up work to the AI agent session
+that owns each PR.
 
 `watchcat daemon` runs everything (scheduler, SQLite store, localhost API and
 web UI) in one process kept alive by launchd or systemd. The other commands
@@ -9,13 +10,15 @@ talk to it.
 
 Documentation: https://tools.binaryc.at/watchcat
 
-Supported stack, one provider per area for now:
+## Supported stack
 
-| Area | Provider |
-|---|---|
-| Version control | GitHub (`gh` CLI) |
-| Notifications | Slack |
-| AI agent | opencode |
+One provider per area for now:
+
+| Area | Provider | Needs |
+|---|---|---|
+| Version control | GitHub | `gh`, signed in with the `repo` scope (`gh auth login`) |
+| Notifications | Slack | a bot token with `chat:write` ([setup](doc/configuration.md#notifications-slack)) |
+| AI agent (optional) | opencode | `opencode` |
 
 ## Installation
 
@@ -42,9 +45,8 @@ watchcat service start
 ### Prerequisites
 
 - macOS or Linux
-- `gh`, signed in with the `repo` scope (`gh auth login`)
 - `~/.local/bin` on `PATH`
-- optional: a Slack bot token with `chat:write` ([Slack](doc/configuration.md#notifications-slack)), `opencode`
+- the provider tools from [Supported stack](#supported-stack)
 
 `watchcat health` checks all of this.
 
@@ -62,9 +64,10 @@ The web UI is at http://127.0.0.1:7878.
 
 More:
 
-- [Configuration](doc/configuration.md): `config.json`, supported stack, GitHub, Slack, opencode, secrets
-- [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, opencode hand-off
+- [Configuration](doc/configuration.md): `config.json`, providers, secrets, health checks
+- [Workflows](doc/workflows.md): automatic merge, CI-failure and review rules, agent hand-off
 - [MCP server](doc/mcp.md): let agents link and check their own PRs
+- [Templates](doc/templates.md): notification and agent prompt text
 - [Web UI](doc/web-ui.md)
 - [HTTP API](doc/api.md)
 - [How it works](doc/architecture.md): task queue, CI run history, code layout
@@ -91,4 +94,4 @@ make docs-serve  # docs site on :8000 (Docker)
 
 ### Releasing
 
-Push a `v*` tag, or run the **Release** workflow on `main` from the Actions tab with a version such as `v0.2.0` (and optional notes). Either way it builds the binaries and publishes the GitHub release.
+Push a `v*` tag, or run the **Release** workflow on `main` from the Actions tab with a version such as `v0.2.0` (and optional notes). Either way it builds the binaries and publishes the release.
