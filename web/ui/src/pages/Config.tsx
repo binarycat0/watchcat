@@ -51,11 +51,8 @@ export function ConfigPage() {
           <p className="muted">Saved to <span className="mono">{d.config_path}</span> and applied right away; no restart needed.</p>
         </div>
         {/* Lives outside the form, tied to it by id; saves every tab. */}
-        <div className="save-box">
-          {dirty && <span className="muted small">Unsaved changes</span>}
-          <button type="submit" form="config-form" className={dirty ? 'primary' : ''} disabled={!dirty || save.isPending}
-            title={dirty ? 'Saves all tabs' : 'No changes to save'}>Save config</button>
-        </div>
+        <button type="submit" form="config-form" className={dirty ? 'primary' : ''} disabled={!dirty || save.isPending}
+          title={dirty ? 'Saves all tabs' : 'No changes to save'}>Save config</button>
       </div>
       <form id="config-form" className="tab-block" onSubmit={(e) => { e.preventDefault(); save.mutate(form); }}>
         <Tabs<ConfigTab> tabs={tabs} active={tab} onChange={(t) => setParams(t === 'schedule' ? {} : { tab: t }, { replace: true })} />
