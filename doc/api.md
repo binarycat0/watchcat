@@ -24,3 +24,7 @@ requests with a non-local `Host` or a cross-site `Origin` are rejected.
 | GET | `/stats?days=N` | PR lifecycle and CI stats |
 | GET, PUT | `/settings` | live-editable settings |
 | POST | `/slack/test` | send a test message |
+| GET | `/templates`, `/templates/{name}` | message templates: current text, default, whether edited |
+| PUT | `/templates/{name}` | `{"text": "..."}`; checked first, 400 if it doesn't render |
+| DELETE | `/templates/{name}` | restore the default (deletes the file) |
+| POST | `/templates/{name}/preview` | `{"text": "..."}`; renders with a sample PR, returns `{"output": "..."}` |

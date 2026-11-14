@@ -114,3 +114,10 @@ export interface Report {
   time_to_merge: Stats; ci_failures: Stats; missing_times: number;
   prs: ReportRow[]; pipeline_time: Stats; jobs: JobStats[];
 }
+
+export interface TemplateVar { name: string; desc: string }
+export interface TemplateInfo {
+  name: string; title: string; group: 'notify' | 'agent'; description: string;
+  vars: TemplateVar[]; uses?: string[];
+  text: string; default: string; custom: boolean; path?: string; error?: string;
+}

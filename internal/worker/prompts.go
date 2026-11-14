@@ -2,10 +2,10 @@ package worker
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/binarycat0/watchcat/internal/core"
 	"github.com/binarycat0/watchcat/internal/github"
+	"github.com/binarycat0/watchcat/internal/templates"
 )
 
 // Prompt names carried in ActionPayload.Prompt.
@@ -14,68 +14,55 @@ const (
 	PromptReviewThreads = "review_threads"
 )
 
-const promptFooter = `
-Rules: do not merge the PR, do not force-push branches you don't own, and do
-not resolve review conversations yourself. When you're done, reply with a
-short summary of what you did and what is left for me.`
-
-func promptHeader(pr core.PR, s core.Snapshot) string {
-	return fmt.Sprintf("[watchcat] PR %s: %s\n%s\nHead commit: %s, base branch: %s\n",
-		pr.Ref(), s.Title, pr.URL(), s.HeadSHA, orDefault(s.BaseRef, "main"))
-}
-
 // CIFailedPrompt asks the agent to triage a CI failure.
-func CIFailedPrompt(pr core.PR, s core.Snapshot, logs string) string {
-	var b strings.Builder
-	b.WriteString(promptHeader(pr, s))
-	b.WriteString("\nCI failed on this PR. Failed checks:\n")
-	for _, c := range s.FailedChecks {
-		fmt.Fprintf(&b, "- %s %s\n", c.Name, c.URL)
-	}
-	if logs != "" {
-		b.WriteString("\n" + logs)
-	}
-	fmt.Fprintf(&b, `
-Please investigate why it failed and act on it:
-1. If it is a flaky test or an infrastructure problem unrelated to this PR,
-   rebase the branch on the latest %[1]s and push, so CI runs again.
-2. If the failure comes from the code or tests in this PR, prepare a fix,
-   run the relevant tests locally, and push it.
-Tell me which case it was and why.
-`, orDefault(s.BaseRef, "main"))
-	b.WriteString(promptFooter)
-	return b.String()
+func CIFailedPrompt(tpl *templates.Set, pr core.PR, s core.Snapshot, logs string) string {
+	return tpl.Render(templates.AgentCIFailed, templates.CIFailedData{
+		PR: prData(pr, s, false), FailedChecks: checks(s.FailedChecks, false), Logs: logs,
+	})
 }
 
 // ReviewThreadsPrompt asks the agent to go through open review conversations.
-func ReviewThreadsPrompt(pr core.PR, s core.Snapshot, threads []github.Thread) string {
-	var b strings.Builder
-	b.WriteString(promptHeader(pr, s))
-	fmt.Fprintf(&b, "\nThe PR is approved and CI is green, but %d review conversation(s) are unresolved:\n", len(threads))
+func ReviewThreadsPrompt(tpl *templates.Set, pr core.PR, s core.Snapshot, threads []github.Thread) string {
+	d := templates.ReviewThreadsData{PR: prData(pr, s, false)}
 	for i, t := range threads {
 		loc := t.Path
 		if t.Line > 0 {
 			loc = fmt.Sprintf("%s:%d", t.Path, t.Line)
 		}
-		fmt.Fprintf(&b, "\n%d. %s\n", i+1, loc)
+		th := templates.Thread{N: i + 1, Path: t.Path, Line: t.Line, Location: loc}
 		for _, c := range t.Comments {
-			fmt.Fprintf(&b, "   @%s: %s\n", c.Author, indent(c.Body, "   "))
+			th.Comments = append(th.Comments, templates.Comment{Author: c.Author, Body: c.Body, URL: c.URL})
 		}
 		if len(t.Comments) > 0 {
-			fmt.Fprintf(&b, "   %s\n", t.Comments[0].URL)
+			th.URL = t.Comments[0].URL
 		}
+		d.Threads = append(d.Threads, th)
 	}
-	b.WriteString(`
-Please go through each conversation and propose what to do: a code change
-(describe it, or prepare it without pushing), a reply to the reviewer, or
-"no change needed" with the reason. Don't push until I confirm.
-`)
-	b.WriteString(promptFooter)
-	return b.String()
+	return tpl.Render(templates.AgentReviewThreads, d)
 }
 
-func indent(s, pad string) string {
-	return strings.ReplaceAll(strings.TrimSpace(s), "\n", "\n"+pad)
+// prData is the PR as templates see it. Slack templates get text escaped
+// for mrkdwn.
+func prData(pr core.PR, s core.Snapshot, slack bool) templates.PR {
+	esc := func(v string) string { return v }
+	if slack {
+		esc = slackEscape
+	}
+	return templates.PR{
+		Ref: pr.Ref(), URL: pr.URL(), Title: esc(s.Title), Repo: pr.Owner + "/" + pr.Repo, Number: pr.Number,
+		HeadSHA: s.HeadSHA, Base: orDefault(s.BaseRef, "main"),
+	}
+}
+
+func checks(cs []core.Check, slack bool) []templates.Check {
+	out := make([]templates.Check, len(cs))
+	for i, c := range cs {
+		out[i] = templates.Check{Name: c.Name, URL: c.URL}
+		if slack {
+			out[i].Name = slackEscape(c.Name)
+		}
+	}
+	return out
 }
 
 func orDefault(s, def string) string {

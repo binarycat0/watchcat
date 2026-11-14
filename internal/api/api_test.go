@@ -17,6 +17,7 @@ import (
 	"github.com/binarycat0/watchcat/internal/agent"
 	"github.com/binarycat0/watchcat/internal/config"
 	"github.com/binarycat0/watchcat/internal/core"
+	"github.com/binarycat0/watchcat/internal/templates"
 	"github.com/binarycat0/watchcat/internal/worker"
 )
 
@@ -318,5 +319,46 @@ func TestManualPromptObeysRuleMode(t *testing.T) {
 	dry, err = cl.PromptAgent(ctx, pr.ID, "ci_failed")
 	if err != nil || dry || payload().DryRun {
 		t.Fatalf("rule on: manual prompt should send: dry=%v err=%v payload=%+v", dry, err, payload())
+	}
+}
+
+func TestTemplates(t *testing.T) {
+	dir := t.TempDir()
+	srv := &Server{Templates: &templates.Set{Dir: dir}}
+	ts := httptest.NewServer(srv.Handler(1))
+	defer ts.Close()
+	do := func(method, path, body string) (int, string) {
+		req, _ := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+		resp, err := ts.Client().Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		b, _ := io.ReadAll(resp.Body)
+		return resp.StatusCode, string(b)
+	}
+
+	code, body := do("GET", "/api/v1/templates", "")
+	var list []templates.Info
+	if code != 200 || json.Unmarshal([]byte(body), &list) != nil || len(list) != len(templates.Defs) {
+		t.Fatalf("list: %d %s", code, body)
+	}
+	if code, body = do("POST", "/api/v1/templates/notify_change/preview", `{"text":"hi {{.PR.Ref}}"}`); code != 200 || !strings.Contains(body, "hi acme/api#42") {
+		t.Fatalf("preview: %d %s", code, body)
+	}
+	if code, body = do("PUT", "/api/v1/templates/notify_change", `{"text":"{{.Bad}}"}`); code != 400 {
+		t.Fatalf("bad save: %d %s", code, body)
+	}
+	if code, body = do("PUT", "/api/v1/templates/notify_change", `{"text":"hi {{.PR.Ref}}"}`); code != 200 || !strings.Contains(body, `"custom":true`) {
+		t.Fatalf("save: %d %s", code, body)
+	}
+	if _, err := os.Stat(filepath.Join(dir, "notify_change.tmpl")); err != nil {
+		t.Fatal(err)
+	}
+	if code, body = do("DELETE", "/api/v1/templates/notify_change", ""); code != 200 || !strings.Contains(body, `"custom":false`) {
+		t.Fatalf("restore: %d %s", code, body)
+	}
+	if code, _ = do("GET", "/api/v1/templates/nope", ""); code != 404 {
+		t.Fatalf("unknown: %d", code)
 	}
 }

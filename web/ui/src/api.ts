@@ -1,6 +1,6 @@
 // Thin client for the daemon's /api/v1. Errors carry the server's message.
 import type {
-  AgentSession, CIRun, Event, HealthReport, PR, PRDetail, Report, RuleInfo, Settings, SettingsResponse, Status, Task,
+  AgentSession, CIRun, Event, HealthReport, PR, PRDetail, Report, RuleInfo, Settings, SettingsResponse, Status, Task, TemplateInfo,
 } from './types';
 
 export class ApiError extends Error {
@@ -51,4 +51,9 @@ export const api = {
   settings: () => call<SettingsResponse>('GET', '/settings'),
   saveSettings: (s: Settings) => call<SettingsResponse>('PUT', '/settings', s),
   slackTest: () => call<null>('POST', '/slack/test'),
+  templates: () => call<TemplateInfo[]>('GET', '/templates'),
+  saveTemplate: (name: string, text: string) => call<TemplateInfo>('PUT', `/templates/${name}`, { text }),
+  restoreTemplate: (name: string) => call<TemplateInfo>('DELETE', `/templates/${name}`),
+  previewTemplate: (name: string, text: string) =>
+    call<{ output: string }>('POST', `/templates/${name}/preview`, { text }),
 };

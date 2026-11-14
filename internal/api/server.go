@@ -23,6 +23,7 @@ import (
 	"github.com/binarycat0/watchcat/internal/core"
 	"github.com/binarycat0/watchcat/internal/health"
 	"github.com/binarycat0/watchcat/internal/slack"
+	"github.com/binarycat0/watchcat/internal/templates"
 	"github.com/binarycat0/watchcat/internal/worker"
 )
 
@@ -36,6 +37,9 @@ type Server struct {
 	Slack        slack.Poster  // nil when there is no Slack token
 	SlackChannel func() string // current DM user or channel
 	Live         *config.Live  // settings editable from the UI; nil disables /settings
+	// Templates are the message templates editable from the UI; nil
+	// disables /templates.
+	Templates *templates.Set
 	// Agent lists and validates agent sessions; nil stores links unchecked.
 	Agent AgentDirectory
 	// GitHubHosts lists the hosts gh is signed in to; nil skips the check.
@@ -375,6 +379,9 @@ func (s *Server) Handler(pid int) http.Handler {
 	}
 	if s.Live != nil {
 		s.settingsRoutes(mux)
+	}
+	if s.Templates != nil {
+		s.templateRoutes(mux)
 	}
 	if s.Web != nil {
 		// Embedded files have no modification time, so browsers would cache

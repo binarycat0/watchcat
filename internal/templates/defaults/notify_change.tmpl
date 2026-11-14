@@ -1,0 +1,20 @@
+{{- /* Emoji for each change kind. */ -}}
+{{define "emoji"}}
+{{- if eq . "ci_failed"}}❌
+{{- else if eq . "ci_passed"}}✅
+{{- else if eq . "conflict"}}⚠️
+{{- else if eq . "conflict_resolved"}}🆗
+{{- else if eq . "changes_requested"}}📝
+{{- else if eq . "approved"}}🎉
+{{- else if eq . "new_comments"}}💬
+{{- else if eq . "pushed"}}⬆️
+{{- else if eq . "merged"}}🚀
+{{- else if eq . "closed"}}🚫
+{{- end}}
+{{- end -}}
+
+{{template "emoji" .Kind}} {{link .PR.URL .PR.Ref}} {{.PR.Title}}
+{{.Message}}
+{{- range .Checks}}
+• {{link .URL .Name}}
+{{- end}}

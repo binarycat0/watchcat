@@ -1,0 +1,13 @@
+{{template "agent_header" .}}
+
+The PR is approved and CI is green, but {{len .Threads}} review conversation(s) are unresolved:
+{{range .Threads}}
+{{.N}}. {{.Location}}
+{{range .Comments}}   @{{.Author}}: {{indent "   " .Body}}
+{{end}}{{with .URL}}   {{.}}
+{{end}}{{end}}
+Please go through each conversation and propose what to do: a code change
+(describe it, or prepare it without pushing), a reply to the reviewer, or
+"no change needed" with the reason. Don't push until I confirm.
+
+{{template "agent_footer" .}}
